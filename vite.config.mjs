@@ -125,8 +125,17 @@ export default defineConfig(({ mode }) => {
         name: "jimmy-ai-dev-api",
         configureServer(server) {
           server.middlewares.use("/api/jimmy", async (req, res) => {
+            if (req.method === "OPTIONS") {
+              res.statusCode = 204;
+              res.setHeader("Allow", "POST, OPTIONS");
+              res.setHeader("Content-Type", "application/json; charset=utf-8");
+              res.end();
+              return;
+            }
+
             if (req.method !== "POST") {
               res.statusCode = 405;
+              res.setHeader("Allow", "POST, OPTIONS");
               res.setHeader("Content-Type", "application/json; charset=utf-8");
               res.end(JSON.stringify({ error: "Method not allowed" }));
               return;
@@ -158,6 +167,11 @@ export default defineConfig(({ mode }) => {
               res.end(JSON.stringify({ error: error.message || "Jimmy AI failed" }));
             }
           });
+        },
+        configurePreviewServer(server) {
+          if (typeof this.configureServer === "function") {
+            this.configureServer(server);
+          }
         },
       },
     ],
