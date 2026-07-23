@@ -12,6 +12,51 @@ Primary CTA: complete the short Strategy Review application, then book the call 
 Keep replies under 120 words. Be direct, premium, calm, and practical. Do not make guarantees. If asked for the next step, tell them to complete the Strategy Review application.
 `;
 
+const rateLimitStore = new Map();
+const MAX_REQUESTS_PER_MINUTE = 20;
+const MAX_MESSAGE_LENGTH = 1200;
+const MAX_CONVERSATION_TURNS = 20;
+const BLOCKED_PATTERNS = [
+  /system\s*prompt/i, /ignore\s*(all|previous|above)/i, /forget/i,
+  /reset/i, /you are (not|are not)/i, /jailbreak/i, /dan/i,
+  /how\s*to\s*(hack|exploit|bypass|scam)/i,
+  /generate\s*(key|token|password|secret)/i,
+  /unlock/i, /crack/i, /illegal/i,
+];
+
+function getClientIp(req) {
+  return req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+    req.headers["x-real-ip"] ||
+    req.socket?.remoteAddress ||
+    "unknown";
+}
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const windowStart = now - 60000;
+  if (!rateLimitStore.has(ip)) {
+    rateLimitStore.set(ip, []);
+  }
+  const timestamps = rateLimitStore.get(ip).filter((t) => t > windowStart);
+  if (timestamps.length >= MAX_REQUESTS_PER_MINUTE) return false;
+  timestamps.push(now);
+  rateLimitStore.set(ip, timestamps);
+  return true;
+}
+
+function validateMessages(messages) {
+  if (!Array.isArray(messages) || messages.length === 0) return { valid: false, error: "No messages provided" };
+  if (messages.length > MAX_CONVERSATION_TURNS) return { valid: false, error: "Conversation too long" };
+  for (const msg of messages) {
+    if (typeof msg.content !== "string") return { valid: false, error: "Invalid message format" };
+    if (msg.content.length > MAX_MESSAGE_LENGTH) return { valid: false, error: "Message too long" };
+    for (const pattern of BLOCKED_PATTERNS) {
+      if (pattern.test(msg.content)) return { valid: false, error: "Blocked content detected" };
+    }
+  }
+  return { valid: true };
+}
+
 async function readJson(req) {
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
@@ -40,20 +85,34 @@ async function deepseekReply({ messages, env }) {
         { role: "system", content: JIMMY_SYSTEM_PROMPT },
         ...messages.slice(-12).map((message) => ({
           role: message.role === "assistant" ? "assistant" : "user",
-          content: String(message.content || "").slice(0, 1200),
+          content: String(message.content || "").slice(0, MAX_MESSAGE_LENGTH),
         })),
       ],
     }),
   });
 
-  const data = await response.json().catch(() => ({}));
+  const raw = await response.text().catch(() => "");
+  let data = {};
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    data = { raw };
+  }
+
   if (!response.ok) {
-    const error = new Error(data?.error?.message || "DeepSeek request failed");
+    const error = new Error(data?.error?.message || data?.message || data?.raw || "DeepSeek request failed");
     error.status = response.status;
     throw error;
   }
 
-  return data?.choices?.[0]?.message?.content?.trim() || "I could not generate a reply. Try asking that another way.";
+  const reply = data?.choices?.[0]?.message?.content?.trim();
+  if (!reply) {
+    const error = new Error("Jimmy returned an empty reply. Try asking that another way.");
+    error.status = 502;
+    throw error;
+  }
+
+  return reply;
 }
 
 export default defineConfig(({ mode }) => {
@@ -68,19 +127,34 @@ export default defineConfig(({ mode }) => {
           server.middlewares.use("/api/jimmy", async (req, res) => {
             if (req.method !== "POST") {
               res.statusCode = 405;
-              res.setHeader("Content-Type", "application/json");
+              res.setHeader("Content-Type", "application/json; charset=utf-8");
               res.end(JSON.stringify({ error: "Method not allowed" }));
+              return;
+            }
+
+            const ip = getClientIp(req);
+            if (!checkRateLimit(ip)) {
+              res.statusCode = 429;
+              res.setHeader("Content-Type", "application/json; charset=utf-8");
+              res.end(JSON.stringify({ error: "Too many requests. Please wait and try again." }));
               return;
             }
 
             try {
               const body = await readJson(req);
-              const reply = await deepseekReply({ messages: Array.isArray(body.messages) ? body.messages : [], env });
-              res.setHeader("Content-Type", "application/json");
+              const validation = validateMessages(body.messages);
+              if (!validation.valid) {
+                res.statusCode = 400;
+                res.setHeader("Content-Type", "application/json; charset=utf-8");
+                res.end(JSON.stringify({ error: validation.error }));
+                return;
+              }
+              const reply = await deepseekReply({ messages: body.messages, env });
+              res.setHeader("Content-Type", "application/json; charset=utf-8");
               res.end(JSON.stringify({ reply }));
             } catch (error) {
               res.statusCode = error.status || 500;
-              res.setHeader("Content-Type", "application/json");
+              res.setHeader("Content-Type", "application/json; charset=utf-8");
               res.end(JSON.stringify({ error: error.message || "Jimmy AI failed" }));
             }
           });

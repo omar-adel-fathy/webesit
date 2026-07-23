@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+﻿import React, { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import {
   ArrowUpRight,
   BarChart3,
@@ -7,20 +7,23 @@ import {
   CheckCircle2,
   ChevronRight,
   ClipboardCheck,
-  Layers3,
   Menu,
   MessageCircle,
   MousePointerClick,
   PlaySquare,
+  Plus,
   Send,
   Sparkles,
   Target,
   Workflow,
   X,
 } from "lucide-react";
+import brandLogo from "../ChatGPT Image Jul 23, 2026, 02_16_52 AM.png";
 
 const calendarUrl =
   "https://calendar.google.com/calendar/appointments/schedules/AcZssZ2h1UL-d25Vx4J5qkG9BDu-XIOB-zT31kIvy43Ec-N2V7RpfYooRGqSLHuE9yROmIHjEOrTeh-3?gv=true";
+const tallyFormId = import.meta.env.VITE_TALLY_FORM_ID || "WOkqMa";
+const headerApplyHref = `https://tally.so/embed/${tallyFormId}?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1`;
 
 const navLinks = [
   { label: "Services", href: "#services" },
@@ -80,8 +83,28 @@ const processSteps = [
   ["02", "Strategy", "Priorities, angles, offers, and the first testing roadmap."],
   ["03", "Research", "Competitors, customer pain points, past winners, and market patterns."],
   ["04", "Hooks", "Hook directions and testing hypotheses for the sprint."],
-  ["05", "Production", "Performance statics and video creatives based on the sprint plan."],
-  ["06", "Review", "Feedback, performance signals, learning, and the next sprint."],
+  ["05", "Concepts", "Clear creative directions before production begins."],
+  ["06", "Production", "Performance statics and video creatives based on the sprint plan."],
+  ["07", "Creative Delivery", "Organized files with platform, hook, CTA, and usage notes."],
+  ["08", "Testing", "Assets enter the paid or organic testing cycle."],
+  ["09", "Feedback", "One clear feedback flow keeps revisions focused."],
+  ["10", "Performance Review", "Signals and learnings guide stronger decisions."],
+  ["11", "Next Sprint", "The next batch starts from what the last one taught us."],
+];
+
+const operatingItems = [
+  "Creative Strategy", "Hook Library", "Competitor Research Board", "Creative Briefs", "Weekly Creative Sprint Board", "Performance Statics", "Performance Video Creatives", "Creative Delivery Folder", "Feedback Tracker", "Monthly Performance Review", "Next Sprint Plan",
+];
+
+const afterBookingSteps = [
+  ["01", "Apply or book", "Share your brand, revenue range, current output, and biggest creative bottleneck."],
+  ["02", "Discovery call", "We review your brand, offer, creative process, and goals."],
+  ["03", "Recommendation", "If there is a fit, we recommend the best package and the first Creative Sprint."],
+  ["04", "Proposal and contract", "You receive the plan, timeline, investment, terms, and delivery structure."],
+  ["05", "Onboarding", "You upload assets and get access to the Growth Partner Workspace."],
+  ["06", "Kickoff and strategy", "We align priorities, approvals, and the first testing roadmap."],
+  ["07", "Weekly production", "Organized Creative Delivery arrives each week with testing notes."],
+  ["08", "Review and next sprint", "We review feedback and signals, then plan what comes next."],
 ];
 
 const packages = [
@@ -111,6 +134,13 @@ const faqItems = [
   ["Who is this for?", "Shopify brands doing $30k+/month or more with a product that already has demand and a need for consistent creative output."],
   ["Do you guarantee ad results?", "No. The goal is a better testing engine: faster output, clearer learning, and stronger creative decisions."],
   ["Why apply before booking?", "The application protects the calendar and makes the Strategy Review more useful for brands that are likely to fit."],
+  ["Do you work with brands under $30k/month?", "Sometimes, but the system is usually most valuable once a brand has demand, traffic, or active testing. Jimmy can help you understand what to prepare first."],
+  ["Do you run ads?", "Creative Scaling focuses on the creative powering paid and organic growth. We work alongside your media buyer or internal team."],
+  ["Do you make content for both organic and paid?", "Yes. The system supports discovery content and conversion-focused creative testing."],
+  ["What do you need from us to start?", "Your website, products, brand assets, past creatives, customer insights, competitors, and performance context when available."],
+  ["How are revisions handled?", "One clear feedback flow keeps changes from getting lost. Each package has a defined revision structure."],
+  ["How is delivery handled?", "Creative Delivery lives in a shared Drive workspace with weekly folders, usage notes, and feedback tracking."],
+  ["Can you help with automations later?", "Yes. Automation and AI support can be added after the creative system is clear."],
 ];
 
 const applicationSteps = [
@@ -150,6 +180,40 @@ const fadeUp = {
 
 const smoothSpring = [0.16, 1, 0.3, 1];
 
+function TypewriterText({ text, speed = 35, delay = 0, className = "", tag: Tag = "span" }) {
+  const [displayed, setDisplayed] = useState("");
+  const [started, setStarted] = useState(false);
+  const indexRef = useRef(0);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    const startTimeout = setTimeout(() => setStarted(true), delay);
+    return () => clearTimeout(startTimeout);
+  }, [delay]);
+
+  useEffect(() => {
+    if (!started) return;
+    indexRef.current = 0;
+    setDisplayed("");
+    timerRef.current = setInterval(() => {
+      if (indexRef.current < text.length) {
+        setDisplayed(text.slice(0, indexRef.current + 1));
+        indexRef.current++;
+      } else {
+        clearInterval(timerRef.current);
+      }
+    }, speed);
+    return () => clearInterval(timerRef.current);
+  }, [started, text, speed]);
+
+  return (
+    <Tag className={className}>
+      {displayed}
+      {displayed !== text && <span className="typed-cursor">|</span>}
+    </Tag>
+  );
+}
+
 function Label({ children }) {
   return (
     <div className="section-kicker inline-flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#151515]/70">
@@ -163,10 +227,12 @@ function AccentText({ children }) {
   return <span className="accent-word ink-underline inline-block text-[#2454E8]">{children}</span>;
 }
 
-function BlueButton({ children, href = "#", className = "" }) {
+function BlueButton({ children, href = "#", className = "", target }) {
   return (
     <a
       href={href}
+      target={target}
+      rel={target === "_blank" ? "noreferrer noopener" : undefined}
       className={`cool-button group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#2454E8] px-5 py-3 text-sm font-bold text-white shadow-[0_18px_45px_rgba(36,84,232,0.25)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_60px_rgba(36,84,232,0.35)] ${className}`}
     >
       {children}
@@ -204,7 +270,9 @@ function BrandSystemVisual() {
       className="relative mx-auto w-full max-w-[520px]"
     >
       <div className="absolute -left-5 top-10 h-28 w-44 -rotate-6 bg-[#CBBF9A]/55 shadow-sm" />
-      <div className="absolute -right-4 bottom-20 h-28 w-28 rounded-full border border-[#151515]/25" />
+      <div className="absolute -right-4 bottom-20 h-28 w-28 overflow-hidden rounded-full border border-[#151515]/25">
+        <img src={brandLogo} alt="Brand Logo" className="h-full w-full object-cover" />
+      </div>
       <PaperCard className="relative overflow-hidden p-0">
         <div className="flex items-center justify-between border-b border-[#151515]/15 px-5 py-4">
           <div className="flex items-center gap-3">
@@ -228,16 +296,24 @@ function BrandSystemVisual() {
           ].map(([title, text], index) => (
             <motion.div
               key={title}
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.15 + index * 0.08, duration: 0.45 }}
+              initial={{ opacity: 0, x: -20, scale: 0.95 }}
+              whileInView={{ opacity: 1, x: 0, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.12, duration: 0.4, ease: smoothSpring }}
               className="flex items-center justify-between gap-4 rounded-2xl border border-[#151515]/10 bg-white/35 p-4"
             >
               <div>
                 <p className="font-serif text-2xl leading-none text-[#151515]">{title}</p>
                 <p className="mt-1 text-sm text-[#151515]/60">{text}</p>
               </div>
-              <CheckCircle2 className="h-5 w-5 shrink-0 text-[#2454E8]" />
+              <motion.div
+                initial={{ scale: 0, rotate: -90 }}
+                whileInView={{ scale: 1, rotate: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.12 + 0.2, type: "spring", stiffness: 200 }}
+              >
+                <CheckCircle2 className="h-5 w-5 shrink-0 text-[#2454E8]" />
+              </motion.div>
             </motion.div>
           ))}
         </div>
@@ -250,40 +326,42 @@ function BrandSystemVisual() {
 }
 
 function ApplicationFlow() {
-  const [step, setStep] = useState(0);
-  const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState({
-    brandName: "",
-    website: "",
-    revenue: "$30k-$100k",
-    team: "Founder",
-    bottleneck: "Creative fatigue",
-    notes: "",
-  });
+  const [submitted, setSubmitted] = useState(() => localStorage.getItem("creative-scaling-tally-complete") === "true");
+  const [booked, setBooked] = useState(() => localStorage.getItem("creative-scaling-booked") === "true");
+  const tallyRef = useRef(null);
 
-  const current = applicationSteps[step];
-  const progress = ((step + 1) / applicationSteps.length) * 100;
-
-  const updateField = (name, value) => setForm((prev) => ({ ...prev, [name]: value }));
-
-  const submitApplication = async () => {
-    const payload = { ...form, submittedAt: new Date().toISOString() };
-    localStorage.setItem("creative-scaling-application", JSON.stringify(payload));
-
-    const endpoint = import.meta.env.VITE_APPLICATION_ENDPOINT;
-    if (endpoint) {
-      try {
-        await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-      } catch (error) {
-        console.warn("Application endpoint failed", error);
+  useEffect(() => {
+    const receiveTallyEvent = (event) => {
+      const eventName = event.data?.eventName || event.data?.event || event.data?.type;
+      if (eventName === "Tally.FormSubmitted") {
+        if (tallyRef.current) tallyRef.current.style.display = "none";
+        localStorage.setItem("creative-scaling-tally-complete", "true");
+        setSubmitted(true);
       }
-    }
+    };
 
-    setSubmitted(true);
+    const receiveCalendarEvent = (event) => {
+      if (
+        event.data &&
+        typeof event.data === "object" &&
+        (event.data?.eventType === "APPOINTMENT_SCHEDULED" || event.data?.status === "completed")
+      ) {
+        localStorage.setItem("creative-scaling-booked", "true");
+        setBooked(true);
+      }
+    };
+
+    window.addEventListener("message", receiveTallyEvent);
+    window.addEventListener("message", receiveCalendarEvent);
+    return () => {
+      window.removeEventListener("message", receiveTallyEvent);
+      window.removeEventListener("message", receiveCalendarEvent);
+    };
+  }, []);
+
+  const confirmBooking = () => {
+    localStorage.setItem("creative-scaling-booked", "true");
+    setBooked(true);
   };
 
   return (
@@ -292,98 +370,50 @@ function ApplicationFlow() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-extrabold tracking-tight">Strategy Review Application</p>
-            <p className="text-xs text-[#151515]/55">Apply first. Book after the fit check.</p>
+            <p className="text-xs text-[#151515]/55">
+              {booked ? "You booked a call — thank you." : submitted ? "Book your slot below" : "Apply first. Booking unlocks after Tally submits."}
+            </p>
           </div>
-          <span className="font-mono text-xs font-bold text-[#2454E8]">{submitted ? "READY TO BOOK" : `STEP ${step + 1}/3`}</span>
+          <span className="font-mono text-xs font-bold text-[#2454E8]">
+            {booked ? "BOOKED" : submitted ? "READY TO BOOK" : ""}
+          </span>
         </div>
-        {!submitted && (
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#151515]/10">
-            <motion.div className="h-full bg-[#2454E8]" animate={{ width: `${progress}%` }} transition={{ duration: 0.35 }} />
-          </div>
-        )}
       </div>
 
       <AnimatePresence mode="wait">
-        {!submitted ? (
+        {booked ? (
           <motion.div
-            key={current.key}
+            key="thankyou"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.35 }}
+            className="p-5 text-center"
+          >
+            <div className="mx-auto mb-6 grid h-20 w-20 place-items-center rounded-full bg-[#2454E8]/10">
+              <CheckCircle2 className="h-10 w-10 text-[#2454E8]" />
+            </div>
+            <p className="font-serif text-4xl font-semibold leading-none text-[#151515]">I booked a call.</p>
+            <p className="mt-4 text-sm leading-7 text-[#151515]/65">
+              Thank you — your Strategy Review is confirmed and your booking is complete.
+            </p>
+            <p className="mt-6 font-serif text-5xl font-bold text-[#D85C9D]">See you there.</p>
+          </motion.div>
+        ) : !submitted ? (
+          <motion.div
+            key="tally"
+            ref={tallyRef}
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -24 }}
             transition={{ duration: 0.28 }}
             className="p-5"
           >
-            <div className="mb-5 flex flex-wrap gap-2">
-              {applicationSteps.map((item, index) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => setStep(index)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] transition ${
-                    index === step
-                      ? "border-[#2454E8] bg-[#2454E8] text-white"
-                      : "border-[#151515]/15 bg-[#F3EBDD]/80 text-[#151515]/55"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-
-            <h3 className="font-serif text-4xl leading-none">{current.title}</h3>
-            <div className="mt-6 grid gap-4">
-              {current.fields.map((field) => (
-                <label key={field.name} className="grid gap-2">
-                  <span className="text-xs font-black uppercase tracking-[0.14em] text-[#151515]/55">{field.label}</span>
-                  {field.type === "select" ? (
-                    <select
-                      value={form[field.name]}
-                      onChange={(event) => updateField(field.name, event.target.value)}
-                      className="w-full rounded-2xl border border-[#151515]/15 bg-white/45 px-4 py-4 font-bold outline-none transition focus:border-[#2454E8]"
-                    >
-                      {field.options.map((option) => (
-                        <option key={option}>{option}</option>
-                      ))}
-                    </select>
-                  ) : field.type === "textarea" ? (
-                    <textarea
-                      value={form[field.name]}
-                      onChange={(event) => updateField(field.name, event.target.value)}
-                      placeholder={field.placeholder}
-                      className="min-h-32 w-full resize-y rounded-2xl border border-[#151515]/15 bg-white/45 px-4 py-4 font-bold outline-none transition focus:border-[#2454E8]"
-                    />
-                  ) : (
-                    <input
-                      type={field.type}
-                      value={form[field.name]}
-                      onChange={(event) => updateField(field.name, event.target.value)}
-                      placeholder={field.placeholder}
-                      className="w-full rounded-2xl border border-[#151515]/15 bg-white/45 px-4 py-4 font-bold outline-none transition focus:border-[#2454E8]"
-                    />
-                  )}
-                </label>
-              ))}
-            </div>
-
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              {step > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setStep((value) => value - 1)}
-                  className="glass-button min-h-12 rounded-full border border-[#151515]/20 bg-[#F3EBDD]/75 px-5 py-3 text-sm font-bold text-[#151515] transition hover:-translate-y-1"
-                >
-                  Back
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => (step === applicationSteps.length - 1 ? submitApplication() : setStep((value) => value + 1))}
-                className="cool-button inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#2454E8] px-5 py-3 text-sm font-bold text-white shadow-[0_18px_45px_rgba(36,84,232,0.25)] transition hover:-translate-y-1"
-              >
-                {step === applicationSteps.length - 1 ? "Submit application" : "Continue"}
-                <ArrowUpRight className="h-4 w-4" />
-              </button>
-            </div>
+            <iframe
+              src={`https://tally.so/embed/${tallyFormId}?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1`}
+              title="Creative Scaling Strategy Review application"
+              className="min-h-[590px] w-full border-0"
+            />
           </motion.div>
         ) : (
           <motion.div
@@ -410,6 +440,13 @@ function ApplicationFlow() {
                 frameBorder="0"
               />
             </div>
+            <button
+              type="button"
+              onClick={confirmBooking}
+              className="mt-4 w-full rounded-2xl bg-[#2454E8] px-5 py-4 text-sm font-bold text-white shadow-lg transition hover:-translate-y-1"
+            >
+              Done - I booked my call
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -417,62 +454,360 @@ function ApplicationFlow() {
   );
 }
 
+function ProcessCarousel({ steps }) {
+  const [active, setActive] = useState(0);
+  const scrollRef = useRef(null);
+  const cardRef = useRef(null);
+  const isDragging = useRef(false);
+  const dragStart = useRef({ x: 0, scrollLeft: 0 });
+  const { scrollYProgress } = useScroll();
+  const cardY = useTransform(scrollYProgress, [0, 1], [0, -12]);
+
+  const scrollTo = (index) => {
+    if (scrollRef.current && cardRef.current) {
+      const cardWidth = cardRef.current.offsetWidth + 12;
+      scrollRef.current.scrollTo({ left: index * cardWidth, behavior: "smooth" });
+      setActive(index);
+    }
+  };
+
+  const handleScroll = () => {
+    if (scrollRef.current && cardRef.current) {
+      const cardWidth = cardRef.current.offsetWidth + 12;
+      const index = Math.round(scrollRef.current.scrollLeft / cardWidth);
+      setActive(Math.min(index, steps.length - 1));
+    }
+  };
+
+  const handleMouseDown = (e) => {
+    isDragging.current = true;
+    dragStart.current = { x: e.pageX - scrollRef.current.offsetLeft, scrollLeft: scrollRef.current.scrollLeft };
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging.current || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - dragStart.current.x) * 1.2;
+    scrollRef.current.scrollLeft = dragStart.current.scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => { isDragging.current = false; };
+
+  const handleWheel = (e) => {
+    if (!scrollRef.current) return;
+    const el = scrollRef.current;
+    // Only treat primarily-vertical wheel gestures
+    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+
+    // Detect whether the carousel can scroll horizontally
+    const canScrollLeft = el.scrollLeft > 0;
+    const canScrollRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+
+    // If the user holds Shift, always convert vertical -> horizontal.
+    // Otherwise only intercept when horizontal scrolling is possible.
+    if (!e.shiftKey && !canScrollLeft && !canScrollRight) {
+      // let the page scroll normally when the carousel is already at its horizontal edges
+      return;
+    }
+
+    e.preventDefault();
+    const multiplier = 1.0;
+    el.scrollLeft += e.deltaY * multiplier;
+  };
+
+  const prev = () => {
+    if (!scrollRef.current || !cardRef.current) return;
+    const cardWidth = cardRef.current.offsetWidth + 12;
+    scrollRef.current.scrollBy({ left: -cardWidth, behavior: "smooth" });
+  };
+
+  const next = () => {
+    if (!scrollRef.current || !cardRef.current) return;
+    const cardWidth = cardRef.current.offsetWidth + 12;
+    scrollRef.current.scrollBy({ left: cardWidth, behavior: "smooth" });
+  };
+
+  return (
+    <motion.div style={{ y: cardY }}>
+      <div className="relative">
+        <button
+          aria-label="Previous"
+          onClick={prev}
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/80 border border-[#151515]/10 shadow-sm flex items-center justify-center hover:bg-white"
+        >
+          ‹
+        </button>
+        <button
+          aria-label="Next"
+          onClick={next}
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/80 border border-[#151515]/10 shadow-sm flex items-center justify-center hover:bg-white"
+        >
+          ›
+        </button>
+        <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        className="flex cursor-grab gap-3 overflow-x-auto scrollbar-hide select-none snap-x snap-mandatory pb-4 active:cursor-grabbing"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {steps.map(([number, title, text]) => (
+          <motion.div
+            key={number}
+            ref={cardRef}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.5, ease: smoothSpring }}
+            whileHover={{ scale: 1.02 }}
+            className="min-w-[280px] snap-start md:min-w-[320px]"
+          >
+            <PaperCard className="h-full p-5">
+              <span className="font-mono text-xs text-[#151515]/35">{number}</span>
+              <h3 className="mt-3 font-serif text-3xl leading-none">{title}</h3>
+              <p className="mt-3 text-sm leading-6 text-[#151515]/65">{text}</p>
+            </PaperCard>
+          </motion.div>
+        ))}
+        </div>
+      </div>
+      <div className="mt-4 flex items-center justify-center gap-2">
+        {steps.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => scrollTo(index)}
+            className={`h-2 rounded-full transition-all duration-300 ${
+              index === active ? "w-8 bg-[#2454E8]" : "w-2 bg-[#151515]/20"
+            }`}
+          />
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
 function JimmyChat() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [messages, setMessages] = useState([
+  const { scrollYProgress } = useScroll();
+  const buttonX = useTransform(scrollYProgress, [0, 0.5], [0, 12]);
+  const [messages, setMessages] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("jimmy-chat-history")) || [{ role: "assistant", content: "I help with fit, packages, process, and next steps. Keep questions short and on-topic." }];
+    } catch {
+      return [{ role: "assistant", content: "I help with fit, packages, process, and next steps. Keep questions short and on-topic." }];
+    }
+  });
+  const messageListRef = useRef(null);
+  const sendingRef = useRef(false);
+  const inputRef = useRef("");
+  const requestBudgetRef = useRef({ count: 0, resetAt: Date.now() });
+
+  useEffect(() => { inputRef.current = input; }, [input]);
+
+  useEffect(() => {
+    localStorage.setItem("jimmy-chat-history", JSON.stringify(messages.slice(-16)));
+    const element = messageListRef.current;
+    if (!element) return;
+    requestAnimationFrame(() => {
+      element.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
+    });
+  }, [messages]);
+
+  useEffect(() => {
+    const openChat = () => setOpen(true);
+    window.addEventListener("open-jimmy", openChat);
+    return () => window.removeEventListener("open-jimmy", openChat);
+  }, []);
+
+  const newChat = () => {
+    setMessages([{ role: "assistant", content: "I help with fit, packages, process, and next steps. Keep questions short and on-topic." }]);
+    localStorage.removeItem("jimmy-chat-history");
+    requestBudgetRef.current = { count: 0, resetAt: Date.now() };
+  };
+
+  const MAX_INPUT_LENGTH = 220;
+  const MAX_CHAT_TURNS = 8;
+  const MAX_REQUESTS_PER_MINUTE = 6;
+  const BLOCKED_REQUEST_PATTERNS = [
+    /ignore previous instructions/i,
+    /system prompt/i,
+    /jailbreak/i,
+    /developer mode/i,
+    /bypass|unlock|crack|hack|exploit|scam|steal|phish|malware|ddos/i,
+    /prompt injection/i,
+    /reveal your (instructions|system|prompt)/i,
+  ];
+
+  const checkRequestBudget = () => {
+    const now = Date.now();
+    const budget = requestBudgetRef.current;
+    if (now - budget.resetAt > 60000) {
+      budget.count = 0;
+      budget.resetAt = now;
+    }
+    if (budget.count >= MAX_REQUESTS_PER_MINUTE) return false;
+    budget.count += 1;
+    return true;
+  };
+
+  const sanitizeInput = (rawText) => {
+    const text = rawText.trim();
+    if (!text) return { ok: false, message: "Please ask a real question about fit, pricing, or process." };
+    if (text.length > MAX_INPUT_LENGTH) return { ok: false, message: "Please keep it short and focused." };
+    const lower = text.toLowerCase();
+    if (BLOCKED_REQUEST_PATTERNS.some((pattern) => pattern.test(lower))) {
+      return { ok: false, message: "I can help with Creative Scaling, not jailbreaks, hacking, scams, or bypassing limits." };
+    }
+    return { ok: true, text };
+  };
+
+  const formatMessageContent = (content) => {
+    const renderInline = (text) => {
+      return text.split(/(\*\*[^*]+\*\*)/g).map((segment, index) => {
+        const match = segment.match(/^\*\*([^*]+)\*\*$/);
+        if (match) {
+          return (
+            <strong key={index} className="font-semibold text-[#151515]">
+              {match[1]}
+            </strong>
+          );
+        }
+        return segment;
+      });
+    };
+
+    const lines = content.split(/\r?\n/);
+    const nodes = [];
+    let currentList = [];
+
+    const flushList = () => {
+      if (!currentList.length) return;
+      nodes.push(
+        <ul key={`list-${nodes.length}`} className="mt-2 ml-4 list-disc space-y-1 text-sm text-[#151515]/75">
+          {currentList.map((item, itemIndex) => (
+            <li key={itemIndex}>{renderInline(item)}</li>
+          ))}
+        </ul>
+      );
+      currentList = [];
+    };
+
+    lines.forEach((line, index) => {
+      if (line.trim().startsWith("- ")) {
+        currentList.push(line.trim().slice(2));
+      } else {
+        flushList();
+        nodes.push(
+          <p key={`line-${index}`} className="mt-2 text-sm leading-6 text-[#151515]/75">
+            {renderInline(line)}
+          </p>
+        );
+      }
+    });
+
+    flushList();
+    return nodes;
+  };
+
+  const localResponses = [
+    { keywords: ["hi", "hello", "hey", "yo", "sup"], response: "Hey. What brand do you run and what is your monthly revenue?" },
     {
-      role: "assistant",
-      content:
-        "Ask me about fit, pricing, deliverables, the application, or what happens after you book a Strategy Review.",
+      keywords: ["pricing", "price", "cost", "package", "starter", "growth", "scale", "how much"],
+      response: "Depends on your monthly revenue and creative needs:\n- **Starter ($2k/mo):** 8-12 assets, basic strategy, 1 feedback round. Best for testing structure.\n- **Growth ($5k/mo):** 15-20 assets, deeper strategy, weekly sprints, performance reviews.\n- **Scale ($8k/mo):** 25+ assets, full feedback flow, priority delivery, dedicated strategy lead.\nIf you're doing $30k+/month with real demand, Growth or Scale is likely the right fit. Want to confirm? Complete the Strategy Review application.",
     },
-  ]);
+    { keywords: ["fit", "qualify", "eligible", "right for", "good fit"], response: "Best fit is Shopify brands doing $30k+/month with product demand. Do you meet that threshold?" },
+    { keywords: ["shopify", "store", "brand", "ecom", "ecommerce"], response: "Good. What is your monthly revenue range and who currently handles your creative?" },
+    { keywords: ["book", "apply", "application", "strategy review", "call", "meeting"], response: "Complete the Strategy Review application on this page. If you are a fit, the booking calendar will appear." },
+    { keywords: ["thank", "thanks", "appreciate"], response: "Happy to help. Apply above when you are ready to start." },
+    { keywords: ["creative", "output", "asset", "content", "deliverable"], response: "We deliver Performance Statics and Video Creatives weekly. Each sprint includes hooks, concepts, production, delivery notes, and a review." },
+    { keywords: ["hero", "altar", "case", "proof", "result", "example"], response: "HER ALTAR was our testing ground: 700K+ organic views and 7K+ followers in about 10 days. A payment issue limited checkout conversion. Results are not a guarantee." },
+    { keywords: ["media buyer", "ads", "ad spend", "facebook", "meta", "tiktok", "google", "paid"], response: "We do not run media buying. We deliver the creative and strategy. Your media buyer or internal team runs the campaigns." },
+    { keywords: ["organic", "reels", "shorts"], response: "We support organic content too. Short-form for TikTok, Reels, and Shorts. Hooks, concepts, and delivery are structured the same way." },
+  ];
 
-  const sendMessage = async () => {
-    const text = input.trim();
-    if (!text || loading) return;
+  const findLocalResponse = (input) => {
+    const lower = input.toLowerCase();
+    for (const item of localResponses) {
+      if (item.keywords.some((k) => lower.includes(k))) return item.response;
+    }
+    return null;
+  };
 
-    const nextMessages = [...messages, { role: "user", content: text }];
-    setMessages(nextMessages);
-    setInput("");
+  const sendMessage = async (suggestedText, forceServer = false) => {
+    const text = (suggestedText || inputRef.current).trim();
+    if (!text || sendingRef.current) return;
+
+    const sanitized = sanitizeInput(text);
+    if (!sanitized.ok) {
+      setMessages((prev) => [...prev, { role: "assistant", content: sanitized.message }]);
+      setInput("");
+      return;
+    }
+
+    if (!checkRequestBudget()) {
+      setMessages((prev) => [...prev, { role: "assistant", content: "I am in strict mode right now. Please wait a moment before sending another question." }]);
+      setInput("");
+      return;
+    }
+
+    const userMessage = { role: "user", content: sanitized.text };
+    const nextMessages = [...messages, userMessage];
+    if (nextMessages.filter((message) => message.role === "user").length > MAX_CHAT_TURNS) {
+      setMessages([{ role: "assistant", content: "This conversation is getting long, so I am starting a fresh thread with the next question." }]);
+      localStorage.removeItem("jimmy-chat-history");
+      requestBudgetRef.current = { count: 0, resetAt: Date.now() };
+      setInput("");
+      return;
+    }
+
+    sendingRef.current = true;
     setLoading(true);
+    setInput("");
+    setMessages((prev) => [...prev, userMessage]);
+
+    const localReply = !forceServer ? findLocalResponse(sanitized.text) : null;
+    if (localReply) {
+      setMessages((prev) => [...prev, { role: "assistant", content: localReply }]);
+      setLoading(false);
+      sendingRef.current = false;
+      return;
+    }
 
     try {
       const response = await fetch("/api/jimmy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages }),
+        body: JSON.stringify({ messages: nextMessages, memory: JSON.parse(localStorage.getItem("creative-scaling-profile") || "{}") }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || "Jimmy AI is not connected yet.");
       setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
     } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content:
-            error.message === "Missing DEEPSEEK_API_KEY"
-              ? "Jimmy is designed and ready, but the DeepSeek API key is not added yet. Add DEEPSEEK_API_KEY to the environment to make this live."
-              : error.message,
-        },
-      ]);
+      setMessages((prev) => [...prev, { role: "assistant", content: error.message }]);
     } finally {
       setLoading(false);
+      sendingRef.current = false;
     }
   };
 
   return (
     <>
-      <button
+      <motion.button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-50 flex max-w-[280px] items-center gap-3 rounded-2xl border border-[#151515]/15 bg-[#F8F1E6]/95 px-4 py-3 text-sm font-bold text-[#151515] shadow-[0_18px_45px_rgba(21,21,21,0.18)] backdrop-blur transition hover:-translate-y-1 hover:border-[#2454E8]/45"
+        style={{ x: buttonX }}
+        className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-2xl bg-[#F8F1E6] px-5 py-3 text-sm font-bold text-[#151515] shadow-[0_18px_45px_rgba(21,21,21,0.18)] transition-colors hover:-translate-y-1"
       >
-        <MessageCircle className="h-5 w-5 text-[#2454E8]" />
-        Ask Jimmy AI
-      </button>
+        <MessageCircle className="h-4 w-4 text-[#2454E8]" />
+        Ask Jimmy
+      </motion.button>
 
       <AnimatePresence>
         {open && (
@@ -480,7 +815,7 @@ function JimmyChat() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] bg-[#151515]/25 px-4 py-5 backdrop-blur-sm"
+            className="fixed inset-0 z-[70] bg-[#151515]/10 px-4 py-5"
             onClick={() => setOpen(false)}
           >
             <motion.div
@@ -488,25 +823,25 @@ function JimmyChat() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 30, scale: 0.96 }}
               transition={{ duration: 0.28 }}
-              className="ml-auto flex h-full max-h-[760px] w-full max-w-[460px] flex-col overflow-hidden rounded-[2rem] border border-[#151515]/15 bg-[#F8F1E6] shadow-2xl"
+              className="ml-auto flex h-full max-h-[760px] w-full max-w-[460px] flex-col overflow-hidden rounded-[2rem] bg-[#F8F1E6]/95 shadow-2xl"
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="flex items-center justify-between border-b border-[#151515]/15 px-5 py-4">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#151515] text-white">
-                    <Bot className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-extrabold tracking-tight">Jimmy AI</p>
-                    <p className="text-xs text-[#151515]/55">Creative Scaling fit assistant</p>
-                  </div>
+              <div className="flex items-center justify-between px-5 py-4">
+                <div>
+                  <p className="text-sm font-extrabold tracking-tight">Jimmy AI</p>
+                  <p className="text-xs text-[#151515]/55">Creative Scaling fit assistant</p>
                 </div>
-                <button type="button" onClick={() => setOpen(false)} className="grid h-10 w-10 place-items-center rounded-2xl border border-[#151515]/15 bg-white/35">
-                  <X className="h-5 w-5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button type="button" onClick={newChat} className="grid h-10 w-10 place-items-center rounded-2xl bg-white/60 transition hover:bg-white" title="New conversation">
+                    <Plus className="h-5 w-5" />
+                  </button>
+                  <button type="button" onClick={() => setOpen(false)} className="grid h-10 w-10 place-items-center rounded-2xl bg-white/60">
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
 
-              <div className="flex-1 space-y-3 overflow-y-auto p-5">
+              <div ref={messageListRef} className="flex-1 space-y-3 overflow-y-auto p-5">
                 {messages.map((message, index) => (
                   <div
                     key={`${message.role}-${index}`}
@@ -516,13 +851,40 @@ function JimmyChat() {
                         : "bg-[#F3EBDD] text-[#151515]/75"
                     }`}
                   >
-                    {message.content}
+                    {message.role === "assistant" ? formatMessageContent(message.content) : message.content}
                   </div>
                 ))}
-                {loading && <div className="w-fit rounded-2xl bg-[#F3EBDD] px-4 py-3 text-sm font-bold text-[#151515]/50">Jimmy is thinking...</div>}
+                {!loading && messages.length > 0 && messages[messages.length - 1].role === "assistant" && (
+                  <div className="flex items-center gap-2 pt-1 text-[11px] font-bold text-[#151515]/35">
+                    <span className="h-1 w-1 rounded-full bg-[#151515]/30" />
+                    Type your reply...
+                  </div>
+                )}
+                {loading && (
+                  <div className="inline-flex items-center gap-3 rounded-2xl bg-[#F3EBDD] px-4 py-3 text-sm font-bold text-[#151515]/75">
+                    <span className="loading-dots">
+                      <span />
+                      <span />
+                      <span />
+                    </span>
+                    replying...
+                  </div>
+                )}
               </div>
 
-              <div className="border-t border-[#151515]/15 p-4">
+              <div className="p-4 pt-0">
+                <div className="flex flex-wrap gap-2 pb-3">
+                  {["Do you support paid and organic?", "Which package is right?", "What happens after I book?"].map((text) => (
+                    <button
+                      key={text}
+                      type="button"
+                      onClick={() => sendMessage(text, true)}
+                      className="rounded-full border border-[#151515]/15 bg-white/80 px-3.5 py-2 text-[11px] font-bold text-[#151515]/70 shadow-sm transition hover:bg-[#2454E8] hover:text-white hover:border-[#2454E8]"
+                    >
+                      {text}
+                    </button>
+                  ))}
+                </div>
                 <div className="flex gap-2">
                   <input
                     value={input}
@@ -535,7 +897,7 @@ function JimmyChat() {
                   />
                   <button
                     type="button"
-                    onClick={sendMessage}
+                    onClick={() => sendMessage()}
                     className="grid h-12 w-12 place-items-center rounded-full bg-[#2454E8] text-white shadow-lg transition hover:scale-105"
                     aria-label="Send message"
                   >
@@ -554,6 +916,7 @@ function JimmyChat() {
 export default function OmarAISystemsLandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { scrollYProgress } = useScroll();
 
   React.useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 42);
@@ -562,12 +925,66 @@ export default function OmarAISystemsLandingPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const playClick = (event) => {
+      if (!event.target.closest("button, a")) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const audio = new AudioContext();
+      const oscillator = audio.createOscillator();
+      const gain = audio.createGain();
+      oscillator.frequency.value = 420;
+      gain.gain.setValueAtTime(0.018, audio.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.045);
+      oscillator.connect(gain).connect(audio.destination);
+      oscillator.start();
+      oscillator.stop(audio.currentTime + 0.05);
+    };
+    document.addEventListener("click", playClick);
+    return () => document.removeEventListener("click", playClick);
+  }, []);
+
   const scrollToSection = (href) => {
     document.querySelector(href)?.scrollIntoView({ behavior: "smooth", block: "start" });
     setMenuOpen(false);
   };
 
   const packageFit = useMemo(() => ["$30k+ / month", "$100k+ / month", "$250k+ / month", "$500k+ / month"], []);
+  const typedWords = useMemo(() => ["Shopify", "DTC", "performance", "growth"], []);
+  const [typedHeadline, setTypedHeadline] = useState("");
+
+  useEffect(() => {
+    let wordIndex = 0;
+    let letterIndex = 0;
+    let deleting = false;
+    let timeoutId;
+
+    const tick = () => {
+      const currentWord = typedWords[wordIndex];
+      if (!deleting) {
+        letterIndex += 1;
+        setTypedHeadline(currentWord.slice(0, letterIndex));
+        if (letterIndex === currentWord.length) {
+          deleting = true;
+          timeoutId = window.setTimeout(tick, 1500);
+          return;
+        }
+      } else {
+        letterIndex -= 1;
+        setTypedHeadline(currentWord.slice(0, letterIndex));
+        if (letterIndex === 0) {
+          deleting = false;
+          wordIndex = (wordIndex + 1) % typedWords.length;
+          timeoutId = window.setTimeout(tick, 600);
+          return;
+        }
+      }
+      timeoutId = window.setTimeout(tick, deleting ? 80 : 120);
+    };
+
+    timeoutId = window.setTimeout(tick, 600);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#F3EBDD] text-[#151515] selection:bg-[#D85C9D]/30">
@@ -598,11 +1015,12 @@ export default function OmarAISystemsLandingPage() {
         <div className="ambient-drift ambient-drift-soft absolute bottom-[-220px] left-[-160px] h-[520px] w-[520px] rounded-full bg-[#CBBF9A]/35 blur-3xl" />
       </div>
 
+      <motion.div className="fixed left-0 top-0 z-[80] h-[3px] w-full origin-left bg-[#2454E8]" style={{ scaleX: scrollYProgress }} />
       <header className={`fixed left-0 top-0 z-50 w-full px-4 pointer-events-none transition-all duration-700 md:px-8 ${isScrolled ? "py-3" : "py-6"}`}>
         <div className={`nav-glass pointer-events-auto mx-auto flex max-w-7xl items-center justify-between rounded-[2rem] px-4 py-3 transition-all duration-700 md:px-8 ${isScrolled ? "border border-[#151515]/10 bg-[#F8F1E6]/82 shadow-[0_32px_64px_-18px_rgba(21,21,21,0.25)] backdrop-blur-2xl" : "border border-transparent bg-transparent"}`}>
           <button onClick={() => scrollToSection("#top")} className="group flex items-center gap-3 text-left">
-            <div className="grid h-11 w-11 place-items-center rounded-full border border-[#151515]/15 bg-[#151515] text-white shadow-sm transition group-hover:border-[#2454E8]/45 group-hover:bg-[#2454E8]">
-              <Layers3 className="h-5 w-5" />
+            <div className="relative h-11 w-11 overflow-hidden rounded-full border border-[#151515]/15 bg-[#F8F1E6] shadow-sm transition group-hover:border-[#2454E8]/45">
+              <img src={brandLogo} alt="Creative Scaling" className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 object-contain" />
             </div>
             <div>
               <p className="text-sm font-black uppercase tracking-[0.18em]">Creative Scaling</p>
@@ -619,7 +1037,7 @@ export default function OmarAISystemsLandingPage() {
           </nav>
 
           <div className="hidden md:block">
-            <BlueButton href="#apply" className="px-4 py-2.5">Book a Strategy Review</BlueButton>
+            <BlueButton href="/#apply" className="px-4 py-2.5">Book a Strategy Review</BlueButton>
           </div>
 
           <button onClick={() => setMenuOpen((value) => !value)} className="grid h-10 w-10 place-items-center rounded-2xl border border-[#151515]/15 bg-white/35 transition hover:bg-[#2454E8]/10 md:hidden" aria-label="Toggle menu">
@@ -636,9 +1054,12 @@ export default function OmarAISystemsLandingPage() {
                     {link.label}
                   </button>
                 ))}
-                <button onClick={() => scrollToSection("#apply")} className="mt-2 rounded-2xl bg-[#151515] px-4 py-4 text-center text-[11px] text-white">
+                <a
+                  href="/#apply"
+                  className="mt-2 inline-flex rounded-2xl bg-[#151515] px-4 py-4 text-center text-[11px] font-black text-white transition hover:bg-[#333]"
+                >
                   Book a Strategy Review
-                </button>
+                </a>
               </div>
             </motion.div>
           )}
@@ -649,13 +1070,13 @@ export default function OmarAISystemsLandingPage() {
         <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.7, ease: smoothSpring }} className="flex flex-col justify-center">
           <Label>Performance Creative Systems</Label>
           <h1 className="hero-title mt-7 max-w-4xl font-serif text-[3.6rem] font-bold leading-[0.9] text-[#151515] sm:text-[5rem] md:text-[6.8rem] lg:text-[7.6rem]">
-            Build a creative engine for <AccentText>Shopify</AccentText> growth.
+            Build a creative engine for <AccentText>{typedHeadline}<span className="typed-cursor">|</span></AccentText>.
           </h1>
           <p className="mt-8 max-w-2xl text-lg leading-8 text-[#151515]/72 md:text-xl">
             We help Shopify brands launch performance statics, video creatives, and testing systems so they can test faster, learn faster, and stop running out of winning creatives.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <BlueButton href="#apply">Book a Strategy Review</BlueButton>
+            <BlueButton href="/#apply">Book a Strategy Review</BlueButton>
             <OutlineButton href="#process">See How It Works</OutlineButton>
           </div>
           <div className="mt-8 flex flex-wrap gap-2">
@@ -685,7 +1106,7 @@ export default function OmarAISystemsLandingPage() {
           <div>
             <Label>The real problem</Label>
             <h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">
-              Most brands do not have a media buying problem. They have a <AccentText>creative system</AccentText> problem.
+              Most brands do not have a media buying problem. They have a <AccentText><TypewriterText text="creative system" speed={40} delay={500} /></AccentText> problem.
             </h2>
           </div>
           <p className="max-w-md text-base leading-7 text-[#151515]/68">
@@ -707,7 +1128,7 @@ export default function OmarAISystemsLandingPage() {
         <div className="mb-10">
           <Label>Services</Label>
           <h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">
-            Output and learning, not more <AccentText>random content</AccentText>.
+            Output and learning, not more <AccentText><TypewriterText text="random content" speed={40} delay={800} /></AccentText>.
           </h2>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -735,7 +1156,7 @@ export default function OmarAISystemsLandingPage() {
             <div>
               <Label>Owned Proof</Label>
               <h2 className="mt-7 max-w-3xl font-serif text-6xl font-bold leading-[0.86] md:text-8xl">
-                HER ALTAR was the testing ground.
+                HER ALTAR was the <TypewriterText text="testing ground" speed={40} delay={600} />.
               </h2>
               <p className="mt-6 max-w-xl text-lg leading-8 text-[#151515]/70">
                 A real Shopify brand built with product selection, store design, creative direction, content strategy, organic content, and paid creative thinking.
@@ -758,6 +1179,18 @@ export default function OmarAISystemsLandingPage() {
         </div>
       </section>
 
+      <section className="relative z-10 mx-auto grid max-w-7xl gap-8 px-5 py-20 md:grid-cols-[0.85fr_1.15fr] md:px-8 md:items-center">
+        <div>
+          <Label>Founder-led</Label>
+          <h2 className="mt-6 font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">Why I built Creative Scaling.</h2>
+        </div>
+        <PaperCard>
+          <p className="text-lg leading-8 text-[#151515]/72">I built Creative Scaling after building my own Shopify brand from the ground up. I saw how hard it was to create content that fit the brand, explained the product, tested the right hooks, and supported both organic growth and paid acquisition.</p>
+          <p className="mt-5 text-lg leading-8 text-[#151515]/72">So instead of only making videos, I built a full creative system: research, hooks, concepts, scripts, production, Creative Delivery, feedback, and Performance Review.</p>
+          <span className="mt-6 inline-flex rounded-full bg-[#87916F]/20 px-3 py-2 font-mono text-xs font-bold uppercase tracking-[0.12em] text-[#526044]">A Growth Partner, not random one-off content</span>
+        </PaperCard>
+      </section>
+
       <section id="process" className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
         <div className="torn-edge bg-[#D85C9D]/75 px-6 py-12 shadow-[0_20px_60px_rgba(216,92,157,0.18)] md:px-12 md:py-16">
           <div className="grid gap-8 md:grid-cols-[0.85fr_1.15fr] md:items-center">
@@ -770,14 +1203,8 @@ export default function OmarAISystemsLandingPage() {
             </div>
           </div>
         </div>
-        <div className="mt-8 grid gap-3 md:grid-cols-3">
-          {processSteps.map(([number, title, text]) => (
-            <PaperCard key={title} className="p-5">
-              <span className="font-mono text-xs text-[#151515]/35">{number}</span>
-              <h3 className="mt-3 font-serif text-3xl leading-none">{title}</h3>
-              <p className="mt-3 text-sm leading-6 text-[#151515]/65">{text}</p>
-            </PaperCard>
-          ))}
+        <div className="mt-8">
+          <ProcessCarousel steps={processSteps} />
         </div>
       </section>
 
@@ -813,11 +1240,26 @@ export default function OmarAISystemsLandingPage() {
         </PaperCard>
       </section>
 
+      <section className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
+        <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+          <div><Label>Creative support</Label><h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">Services built around creative output and learning.</h2></div>
+          <p className="max-w-md text-base leading-7 text-[#151515]/65">Each service connects to a testing cycle, not a disconnected asset request.</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[
+            ["Organic Creative", "TikTok, Reels, Shorts, product content, founder direction, and hook testing."],
+            ["Paid Creative", "Meta and TikTok ads, UGC-style video, statics, product demos, and offer creatives."],
+            ["Creative Strategy", "Competitor research, hook library, angle development, roadmap, and product priorities."],
+            ["Creative Systems", "Weekly sprints, delivery folders, feedback flow, Performance Reviews, and planning."],
+          ].map(([title, text], index) => <PaperCard key={title} className="reveal-card"><span className="font-mono text-xs font-bold text-[#87916F]">0{index + 1}</span><h3 className="mt-8 font-serif text-3xl leading-none">{title}</h3><p className="mt-4 text-sm leading-7 text-[#151515]/65">{text}</p></PaperCard>)}
+        </div>
+      </section>
+
       <section id="pricing" className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
         <div className="mb-10">
           <Label>Packages</Label>
           <h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">
-            Starting prices that set clear expectations.
+            Starting prices that <TypewriterText text="set clear expectations" speed={35} delay={700} />.
           </h2>
         </div>
         <div className="grid gap-4 lg:grid-cols-3">
@@ -838,6 +1280,12 @@ export default function OmarAISystemsLandingPage() {
             </PaperCard>
           ))}
         </div>
+        <p className="mt-6 max-w-3xl text-sm leading-7 text-[#151515]/62">Every package is customized around volume, cadence, support needs, and the current creative bottleneck. You are paying for strategy, research, hooks, production, delivery, feedback, and iteration—not random images or videos.</p>
+      </section>
+
+      <section className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
+        <div className="mb-10"><Label>Inside the system</Label><h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">What you receive inside the system.</h2><p className="mt-5 max-w-2xl text-lg leading-8 text-[#151515]/70">A clean operating system for connecting research, hooks, production, delivery, feedback, and performance learning.</p></div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{operatingItems.map((item, index) => <motion.div key={item} whileHover={{ y: -5 }} className="flex items-center gap-4 rounded-2xl border border-[#151515]/15 bg-[#F8F1E6]/80 p-5 shadow-sm"><span className="grid h-8 w-8 place-items-center rounded-full bg-[#2454E8] font-mono text-xs font-bold text-white">{String(index + 1).padStart(2, "0")}</span><p className="font-bold text-[#151515]/78">{item}</p></motion.div>)}</div>
       </section>
 
       <section id="apply" className="relative z-10 mx-auto grid max-w-7xl gap-10 px-5 py-20 md:grid-cols-[0.82fr_1.18fr] md:px-8">
@@ -861,11 +1309,23 @@ export default function OmarAISystemsLandingPage() {
         <ApplicationFlow />
       </section>
 
+      <section className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
+        <div className="mb-10"><Label>After your Strategy Review</Label><h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">You will always know what happens next.</h2><p className="mt-5 max-w-2xl text-lg leading-8 text-[#151515]/70">From discovery to the next sprint, the process is clear: where files live, how feedback works, and what we are making next.</p></div>
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">{afterBookingSteps.map(([number, title, text]) => <PaperCard key={title} className="p-5"><span className="font-mono text-xs font-bold text-[#87916F]">{number}</span><h3 className="mt-4 font-serif text-2xl leading-none">{title}</h3><p className="mt-3 text-sm leading-6 text-[#151515]/65">{text}</p></PaperCard>)}</div>
+      </section>
+
+      <section className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
+        <PaperCard className="grid gap-8 p-7 md:grid-cols-[1fr_0.82fr] md:p-10">
+          <div><Label>Ask Jimmy</Label><h2 className="mt-6 font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">Ask Jimmy about Creative Scaling.</h2><p className="mt-5 max-w-xl text-lg leading-8 text-[#151515]/70">Jimmy gives direct, qualified answers about the offer, packages, onboarding, pricing, creative process, and whether this is a fit for your brand.</p></div>
+          <div className="rounded-[1.5rem] border border-[#151515]/15 bg-[#F3EBDD] p-5"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-[#151515] text-white"><Bot className="h-5 w-5" /></div><div><p className="font-bold">Jimmy AI</p><p className="text-xs text-[#151515]/55">Short, structured, content-aware answers</p></div></div><div className="mt-5 space-y-2">{["Which package is right for my brand?", "What happens after I book?", "Why does Creative Scaling cost more?"].map((question) => <p key={question} className="rounded-xl bg-white/65 p-3 text-sm font-semibold text-[#151515]/70">{question}</p>)}</div><button type="button" onClick={() => window.dispatchEvent(new Event("open-jimmy"))} className="mt-5 text-sm font-black text-[#2454E8]">Open Jimmy →</button></div>
+        </PaperCard>
+      </section>
+
       <section id="faq" className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
         <div className="mb-10">
           <Label>FAQ</Label>
           <h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">
-            Clear answers before the call.
+            <TypewriterText text="Clear answers" speed={40} delay={800} /> before the call.
           </h2>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
@@ -889,7 +1349,7 @@ export default function OmarAISystemsLandingPage() {
               Apply for a Strategy Review and see what your first Creative Sprint should focus on.
             </p>
           </div>
-          <BlueButton href="#apply">Start Application</BlueButton>
+          <BlueButton href="/#apply">Start Application</BlueButton>
         </PaperCard>
       </section>
 
@@ -901,7 +1361,7 @@ export default function OmarAISystemsLandingPage() {
           </div>
           <div className="flex flex-wrap gap-3 text-sm font-bold text-[#151515]/65">
             {navLinks.map((link) => (
-              <a key={link.href} href={link.href} className="hover:text-[#2454E8]">{link.label}</a>
+              <button key={link.href} onClick={() => scrollToSection(link.href)} className="hover:text-[#2454E8]">{link.label}</button>
             ))}
           </div>
         </div>

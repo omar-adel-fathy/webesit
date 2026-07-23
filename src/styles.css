@@ -116,7 +116,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   border: 1px solid transparent;
   font-size: 14px;
   font-weight: 900;
-  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease, color 180ms ease;
 }
 .button:hover { transform: translateY(-2px); }
 .button.primary {
@@ -127,6 +127,24 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .button.outline {
   background: rgba(248, 241, 230, 0.74);
   border-color: rgba(21, 21, 21, 0.2);
+}
+.glass-button:hover,
+.cool-button:hover,
+.card-surface:hover,
+.reveal-card:hover {
+  transform: translateY(-4px);
+}
+.card-surface:hover,
+.reveal-card:hover {
+  background: rgba(255,255,255,0.65);
+}
+.hero-title .accent-word {
+  transition: transform 220ms ease, color 220ms ease, text-shadow 220ms ease;
+}
+.hero-title .accent-word:hover {
+  transform: translateY(-2px) scale(1.02);
+  color: #1b48d6;
+  text-shadow: 0 18px 48px rgba(36, 84, 232, 0.18);
 }
 
 .section,
@@ -888,11 +906,20 @@ footer a {
   height: .12em;
   transform: rotate(-1deg);
   border-radius: 999px;
-  background:
-    linear-gradient(90deg, rgba(216,92,157,.78), rgba(216,92,157,.38)),
-    repeating-linear-gradient(90deg, rgba(255,255,255,.5) 0 5px, transparent 5px 11px);
+  background: #d85c9d;
   filter: drop-shadow(0 7px 12px rgba(216,92,157,.18));
   z-index: -1;
+}
+
+.typed-cursor {
+  display: inline-block;
+  margin-left: 0.1em;
+  opacity: 1;
+  animation: blink-cursor 1.2s step-end infinite;
+}
+
+@keyframes blink-cursor {
+  50% { opacity: 0; }
 }
 
 .nav-avatar {
@@ -992,6 +1019,31 @@ footer a {
 @keyframes ambient-drift {
   from { transform: translate3d(0, 0, 0) scale(1); }
   to { transform: translate3d(32px, -24px, 0) scale(1.08); }
+}
+
+.loading-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.loading-dots span {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ink);
+  opacity: 0.35;
+  animation: loading-dot 1s infinite ease-in-out;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: 0s; }
+.loading-dots span:nth-child(2) { animation-delay: 0.12s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.24s; }
+
+@keyframes loading-dot {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.35; }
+  40% { transform: translateY(-3px); opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
