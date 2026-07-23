@@ -1,53 +1,17 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
 
-const JIMMY_SYSTEM_PROMPT = `
-You are Jimmy AI, the concise fit assistant for Creative Scaling.
-Creative Scaling helps Shopify brands build predictable creative engines for paid ads and organic growth.
-Offer: performance statics, performance video creatives, creative strategy, weekly creative sprints, delivery structure, feedback flow, and performance reviews.
-Best fit: Shopify brands doing $30k+/month with real product demand who need more consistent creative output and better testing structure.
-Not a fit: very early brands, cheapest-editor shoppers, one random video requests, or people expecting guaranteed ad results without testing.
-Packages: Starter starts at $2,000/mo, Growth starts at $5,000/mo, Scale starts at $8,000/mo.
-Primary CTA: complete the short Strategy Review application, then book the call if qualified.
-Keep replies under 120 words. Be direct, premium, calm, and practical. Do not make guarantees. If asked for the next step, tell them to complete the Strategy Review application.
-`;
-
-const rateLimitStore = new Map();
-const MAX_REQUESTS_PER_MINUTE = 20;
-const MAX_MESSAGE_LENGTH = 1200;
-const MAX_CONVERSATION_TURNS = 20;
-const BLOCKED_PATTERNS = [
-  /system\s*prompt/i, /ignore\s*(all|previous|above)/i, /forget/i,
-  /reset/i, /you are (not|are not)/i, /jailbreak/i, /dan/i,
-  /how\s*to\s*(hack|exploit|bypass|scam)/i,
-  /generate\s*(key|token|password|secret)/i,
-  /unlock/i, /crack/i, /illegal/i,
-];
-
-function getClientIp(req) {
-  return req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
-    req.headers["x-real-ip"] ||
-    req.socket?.remoteAddress ||
-    "unknown";
-}
-
-function checkRateLimit(ip) {
-  const now = Date.now();
-  const windowStart = now - 60000;
-  if (!rateLimitStore.has(ip)) {
-    rateLimitStore.set(ip, []);
-  }
-  const timestamps = rateLimitStore.get(ip).filter((t) => t > windowStart);
-  if (timestamps.length >= MAX_REQUESTS_PER_MINUTE) return false;
-  timestamps.push(now);
-  rateLimitStore.set(ip, timestamps);
-  return true;
-}
-
-function validateMessages(messages) {
-  if (!Array.isArray(messages) || messages.length === 0) return { valid: false, error: "No messages provided" };
-  if (messages.length > MAX_CONVERSATION_TURNS) return { valid: false, error: "Conversation too long" };
-  for (const msg of messages) {
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+      },
+    },
+  },
+});
     if (typeof msg.content !== "string") return { valid: false, error: "Invalid message format" };
     if (msg.content.length > MAX_MESSAGE_LENGTH) return { valid: false, error: "Message too long" };
     for (const pattern of BLOCKED_PATTERNS) {

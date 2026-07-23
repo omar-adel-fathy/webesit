@@ -786,9 +786,15 @@ function JimmyChat() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: nextMessages, memory: JSON.parse(localStorage.getItem("creative-scaling-profile") || "{}") }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.error || "Jimmy AI is not connected yet.");
-      setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
+      const text = await response.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (parseError) {
+        throw new Error(`Jimmy AI returned invalid JSON: ${text ? text.slice(0, 200) : "empty response"}`);
+      }
+      if (!response.ok) throw new Error(data?.error || `Jimmy AI is not connected yet. (${response.status})`);
+      setMessages((prev) => [...prev, { role: "assistant", content: data.reply || "Jimmy AI did not return a valid reply. Try again." }]);
     } catch (error) {
       setMessages((prev) => [...prev, { role: "assistant", content: error.message }]);
     } finally {

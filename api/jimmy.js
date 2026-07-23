@@ -62,11 +62,21 @@ function validateMessages(messages) {
 }
 
 export default async function handler(req, res) {
+  if (req.method === "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.status(204).end();
+    return;
+  }
+
   if (req.method !== "POST") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
     res.status(405).json({ error: "Method not allowed" });
     return;
   }
 
+  res.setHeader("Access-Control-Allow-Origin", "*");
   const ip = getClientIp(req);
   if (!checkRateLimit(ip)) {
     res.status(429).json({ error: "Too many requests. Please wait and try again." });
