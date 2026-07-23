@@ -328,23 +328,45 @@ function BrandSystemVisual() {
 function ApplicationFlow() {
   const [submitted, setSubmitted] = useState(() => localStorage.getItem("creative-scaling-tally-complete") === "true");
   const [booked, setBooked] = useState(() => localStorage.getItem("creative-scaling-booked") === "true");
+  const [showManualFallback, setShowManualFallback] = useState(false);
   const tallyRef = useRef(null);
+  const fallbackTimerRef = useRef(null);
 
   useEffect(() => {
     const receiveTallyEvent = (event) => {
-      const eventName = event.data?.eventName || event.data?.event || event.data?.type;
-      if (eventName === "Tally.FormSubmitted") {
+      if (!event.data || typeof event.data !== "object") return;
+
+      const eventName =
+        event.data?.eventName ||
+        event.data?.event ||
+        event.data?.type ||
+        event.data?.action ||
+        "";
+
+      if (
+        eventName === "Tally.FormSubmitted" ||
+        eventName === "Tally.FormCompleted" ||
+        eventName === "Tally.Form.PageSubmitted" ||
+        eventName === "FORM_SUBMITTED" ||
+        eventName === "Tally.submitted" ||
+        (event.data?.isCompleted === true)
+      ) {
         if (tallyRef.current) tallyRef.current.style.display = "none";
         localStorage.setItem("creative-scaling-tally-complete", "true");
         setSubmitted(true);
+        setShowManualFallback(false);
+        if (fallbackTimerRef.current) clearTimeout(fallbackTimerRef.current);
       }
     };
 
     const receiveCalendarEvent = (event) => {
+      if (!event.data || typeof event.data !== "object") return;
       if (
-        event.data &&
-        typeof event.data === "object" &&
-        (event.data?.eventType === "APPOINTMENT_SCHEDULED" || event.data?.status === "completed")
+        event.data?.eventType === "APPOINTMENT_SCHEDULED" ||
+        event.data?.type === "APPOINTMENT_SCHEDULED" ||
+        event.data?.status === "completed" ||
+        event.data?.event === "booking_completed" ||
+        event.data?.event === "APPOINTMENT_SCHEDULED"
       ) {
         localStorage.setItem("creative-scaling-booked", "true");
         setBooked(true);
@@ -359,9 +381,27 @@ function ApplicationFlow() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!submitted) {
+      fallbackTimerRef.current = setTimeout(() => {
+        setShowManualFallback(true);
+      }, 2000);
+    }
+    return () => {
+      if (fallbackTimerRef.current) clearTimeout(fallbackTimerRef.current);
+    };
+  }, [submitted]);
+
   const confirmBooking = () => {
     localStorage.setItem("creative-scaling-booked", "true");
     setBooked(true);
+  };
+
+  const manualSubmit = () => {
+    if (tallyRef.current) tallyRef.current.style.display = "none";
+    localStorage.setItem("creative-scaling-tally-complete", "true");
+    setSubmitted(true);
+    setShowManualFallback(false);
   };
 
   return (
@@ -407,13 +447,33 @@ function ApplicationFlow() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -24 }}
             transition={{ duration: 0.28 }}
-            className="p-5"
           >
             <iframe
               src={`https://tally.so/embed/${tallyFormId}?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1`}
               title="Creative Scaling Strategy Review application"
               className="min-h-[590px] w-full border-0"
             />
+            <AnimatePresence>
+              {showManualFallback && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  className="p-5"
+                >
+                  <p className="mb-3 text-sm font-semibold text-[#151515]/65">
+                    Already submitted? If the calendar did not appear, click below.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={manualSubmit}
+                    className="w-full rounded-2xl bg-[#2454E8] px-5 py-4 text-sm font-bold text-white shadow-lg transition hover:-translate-y-1"
+                  >
+                    I submitted the form — show booking calendar
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         ) : (
           <motion.div
@@ -781,22 +841,47 @@ function JimmyChat() {
     }
 
     try {
+      let memory = {};
+      try {
+        const raw = localStorage.getItem("creative-scaling-profile");
+        if (raw) memory = JSON.parse(raw);
+      } catch (_) {
+        memory = {};
+      }
+
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 12000);
+
       const response = await fetch("/api/jimmy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages, memory: JSON.parse(localStorage.getItem("creative-scaling-profile") || "{}") }),
+        body: JSON.stringify({ messages: nextMessages, memory }),
+        signal: controller.signal,
       });
-      const text = await response.text();
-      let data = {};
-      try {
-        data = text ? JSON.parse(text) : {};
-      } catch (parseError) {
-        throw new Error(`Jimmy AI returned invalid JSON: ${text ? text.slice(0, 200) : "empty response"}`);
+      clearTimeout(timer);
+
+      const contentType = response.headers.get("content-type") || "";
+      if (!response.ok) {
+        if (contentType.includes("application/json")) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData?.error || `Jimmy AI is not available right now. (${response.status})`);
+        }
+        const text = await response.text().catch(() => "");
+        throw new Error(`Jimmy AI is not available right now. (${response.status})`);
       }
-      if (!response.ok) throw new Error(data?.error || `Jimmy AI is not connected yet. (${response.status})`);
+
+      if (!contentType.includes("application/json")) {
+        throw new Error("Jimmy AI returned an unexpected response. Try again in a moment.");
+      }
+
+      const data = await response.json();
       setMessages((prev) => [...prev, { role: "assistant", content: data.reply || "Jimmy AI did not return a valid reply. Try again." }]);
     } catch (error) {
-      setMessages((prev) => [...prev, { role: "assistant", content: error.message }]);
+      if (error.name === "AbortError") {
+        setMessages((prev) => [...prev, { role: "assistant", content: "Jimmy AI is taking too long. Please try again in a moment." }]);
+      } else {
+        setMessages((prev) => [...prev, { role: "assistant", content: error.message || "Something went wrong. Try again." }]);
+      }
     } finally {
       setLoading(false);
       sendingRef.current = false;
