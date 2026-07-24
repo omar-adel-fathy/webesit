@@ -18,7 +18,7 @@ Keep replies under 90 words and use short plain paragraphs or at most 3 bullets.
 const rateLimitStore = new Map();
 const MAX_REQUESTS_PER_MINUTE = 8;
 const MAX_MESSAGE_LENGTH = 900;
-const MAX_CONVERSATION_TURNS = 10;
+const MAX_CONVERSATION_TURNS = 20;
 const BLOCKED_PATTERNS = [
   /system\s*prompt/i, /ignore\s*(all|previous|above)/i, /forget/i,
   /reset/i, /you are (not|are not)/i, /jailbreak/i, /dan/i,

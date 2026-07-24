@@ -679,6 +679,10 @@ function ProcessCarousel({ steps }) {
 }
 
 function JimmyChat() {
+  const CHAT_HISTORY_KEY = "jimmy-chat-history";
+  const CHAT_HISTORY_VERSION_KEY = "jimmy-chat-history-version";
+  const CHAT_HISTORY_VERSION = "2";
+  const INITIAL_MESSAGE = "I help with fit, packages, process, and next steps. Keep questions short and on-topic.";
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -686,9 +690,14 @@ function JimmyChat() {
   const buttonX = useTransform(scrollYProgress, [0, 0.5], [0, 12]);
   const [messages, setMessages] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem("jimmy-chat-history")) || [{ role: "assistant", content: "I help with fit, packages, process, and next steps. Keep questions short and on-topic." }];
+      if (localStorage.getItem(CHAT_HISTORY_VERSION_KEY) !== CHAT_HISTORY_VERSION) {
+        localStorage.removeItem(CHAT_HISTORY_KEY);
+        localStorage.setItem(CHAT_HISTORY_VERSION_KEY, CHAT_HISTORY_VERSION);
+        return [{ role: "assistant", content: INITIAL_MESSAGE }];
+      }
+      return JSON.parse(localStorage.getItem(CHAT_HISTORY_KEY)) || [{ role: "assistant", content: INITIAL_MESSAGE }];
     } catch {
-      return [{ role: "assistant", content: "I help with fit, packages, process, and next steps. Keep questions short and on-topic." }];
+      return [{ role: "assistant", content: INITIAL_MESSAGE }];
     }
   });
   const messageListRef = useRef(null);
@@ -699,7 +708,8 @@ function JimmyChat() {
   useEffect(() => { inputRef.current = input; }, [input]);
 
   useEffect(() => {
-    localStorage.setItem("jimmy-chat-history", JSON.stringify(messages.slice(-16)));
+    localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(messages.slice(-16)));
+    localStorage.setItem(CHAT_HISTORY_VERSION_KEY, CHAT_HISTORY_VERSION);
     const element = messageListRef.current;
     if (!element) return;
     requestAnimationFrame(() => {
@@ -714,8 +724,9 @@ function JimmyChat() {
   }, []);
 
   const newChat = () => {
-    setMessages([{ role: "assistant", content: "I help with fit, packages, process, and next steps. Keep questions short and on-topic." }]);
-    localStorage.removeItem("jimmy-chat-history");
+    setMessages([{ role: "assistant", content: INITIAL_MESSAGE }]);
+    localStorage.removeItem(CHAT_HISTORY_KEY);
+    localStorage.setItem(CHAT_HISTORY_VERSION_KEY, CHAT_HISTORY_VERSION);
     requestBudgetRef.current = { count: 0, resetAt: Date.now() };
   };
 
@@ -803,31 +814,7 @@ function JimmyChat() {
     return nodes;
   };
 
-  const localResponses = [
-    { keywords: ["hi", "hello", "hey", "yo", "sup"], response: "Hey. What brand do you run and what is your monthly revenue?" },
-    {
-      keywords: ["pricing", "price", "cost", "package", "starter", "growth", "scale", "how much"],
-      response: "Depends on your monthly revenue and creative needs:\n- **Starter ($2k/mo):** 8-12 assets, basic strategy, 1 feedback round. Best for testing structure.\n- **Growth ($5k/mo):** 15-20 assets, deeper strategy, weekly sprints, performance reviews.\n- **Scale ($8k/mo):** 25+ assets, full feedback flow, priority delivery, dedicated strategy lead.\nIf you're doing $30k+/month with real demand, Growth or Scale is likely the right fit. Want to confirm? Complete the Strategy Review application.",
-    },
-    { keywords: ["fit", "qualify", "eligible", "right for", "good fit"], response: "Best fit is Shopify brands doing $30k+/month with product demand. Do you meet that threshold?" },
-    { keywords: ["shopify", "store", "brand", "ecom", "ecommerce"], response: "Good. What is your monthly revenue range and who currently handles your creative?" },
-    { keywords: ["book", "apply", "application", "strategy review", "call", "meeting"], response: "Complete the Strategy Review application on this page. If you are a fit, the booking calendar will appear." },
-    { keywords: ["thank", "thanks", "appreciate"], response: "Happy to help. Apply above when you are ready to start." },
-    { keywords: ["creative", "output", "asset", "content", "deliverable"], response: "We deliver Performance Statics and Video Creatives weekly. Each sprint includes hooks, concepts, production, delivery notes, and a review." },
-    { keywords: ["hero", "altar", "case", "proof", "result", "example"], response: "HER ALTAR was our testing ground: 700K+ organic views and 7K+ followers in about 10 days. A payment issue limited checkout conversion. Results are not a guarantee." },
-    { keywords: ["media buyer", "ads", "ad spend", "facebook", "meta", "tiktok", "google", "paid"], response: "We do not run media buying. We deliver the creative and strategy. Your media buyer or internal team runs the campaigns." },
-    { keywords: ["organic", "reels", "shorts"], response: "We support organic content too. Short-form for TikTok, Reels, and Shorts. Hooks, concepts, and delivery are structured the same way." },
-  ];
-
-  const findLocalResponse = (input) => {
-    const lower = input.toLowerCase();
-    for (const item of localResponses) {
-      if (item.keywords.some((k) => lower.includes(k))) return item.response;
-    }
-    return null;
-  };
-
-  const sendMessage = async (suggestedText, forceServer = false) => {
+  const sendMessage = async (suggestedText) => {
     const text = (suggestedText || inputRef.current).trim();
     if (!text || sendingRef.current) return;
 
@@ -848,7 +835,7 @@ function JimmyChat() {
     const nextMessages = [...messages, userMessage];
     if (nextMessages.filter((message) => message.role === "user").length > MAX_CHAT_TURNS) {
       setMessages([{ role: "assistant", content: "This conversation is getting long, so I am starting a fresh thread with the next question." }]);
-      localStorage.removeItem("jimmy-chat-history");
+      localStorage.removeItem(CHAT_HISTORY_KEY);
       requestBudgetRef.current = { count: 0, resetAt: Date.now() };
       setInput("");
       return;
@@ -858,14 +845,6 @@ function JimmyChat() {
     setLoading(true);
     setInput("");
     setMessages((prev) => [...prev, userMessage]);
-
-    const localReply = !forceServer ? findLocalResponse(sanitized.text) : null;
-    if (localReply) {
-      setMessages((prev) => [...prev, { role: "assistant", content: localReply }]);
-      setLoading(false);
-      sendingRef.current = false;
-      return;
-    }
 
     try {
       let memory = {};
@@ -996,7 +975,7 @@ function JimmyChat() {
                     <button
                       key={text}
                       type="button"
-                      onClick={() => sendMessage(text, true)}
+                      onClick={() => sendMessage(text)}
                       className="rounded-full border border-[#151515]/15 bg-white/80 px-3.5 py-2 text-[11px] font-bold text-[#151515]/70 shadow-sm transition hover:bg-[#2454E8] hover:text-white hover:border-[#2454E8]"
                     >
                       {text}
