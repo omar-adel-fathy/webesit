@@ -12,7 +12,7 @@ import {
   MousePointerClick,
   PlaySquare,
   Plus,
-  Send,
+
   Sparkles,
   Target,
   Workflow,
@@ -179,6 +179,33 @@ const fadeUp = {
 };
 
 const smoothSpring = [0.16, 1, 0.3, 1];
+
+const staggerContainer = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.07, delayChildren: 0.12 },
+  },
+};
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 36, filter: "blur(10px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.65, ease: smoothSpring },
+  },
+};
+
+const sectionReveal = {
+  hidden: { opacity: 0, y: 40, filter: "blur(12px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.8, ease: smoothSpring },
+  },
+};
 
 function TypewriterText({ text, speed = 35, delay = 0, className = "", tag: Tag = "span" }) {
   const [displayed, setDisplayed] = useState("");
@@ -989,10 +1016,13 @@ function JimmyChat() {
                   <button
                     type="button"
                     onClick={() => sendMessage()}
-                    className="grid h-12 w-12 place-items-center rounded-full bg-[#2454E8] text-white shadow-lg transition hover:scale-105"
+                    disabled={!input.trim() || loading}
+                    className="send-btn"
                     aria-label="Send message"
                   >
-                    <Send className="h-4 w-4" />
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   </button>
                 </div>
               </div>
@@ -1007,10 +1037,23 @@ function JimmyChat() {
 export default function OmarAISystemsLandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
   const { scrollYProgress } = useScroll();
 
-  React.useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 42);
+  useEffect(() => {
+    const sectionIds = navLinks.map((link) => link.href.replace("#", ""));
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 42);
+      const scrollY = window.scrollY + 140;
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const el = document.getElementById(sectionIds[i]);
+        if (el && el.offsetTop <= scrollY) {
+          setActiveSection("#" + sectionIds[i]);
+          return;
+        }
+      }
+      setActiveSection("");
+    };
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -1097,6 +1140,25 @@ export default function OmarAISystemsLandingPage() {
         .torn-edge {
           clip-path: polygon(0 4%, 6% 0, 16% 3%, 28% 0, 42% 4%, 55% 1%, 67% 4%, 78% 0, 91% 3%, 100% 0, 98% 100%, 88% 96%, 74% 99%, 62% 96%, 48% 100%, 33% 97%, 20% 100%, 8% 96%, 0 100%);
         }
+        .send-btn {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: #000;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: background 0.15s ease;
+        }
+        .send-btn:hover:not(:disabled) {
+          background: #333;
+        }
+        .send-btn:disabled {
+          background: #d9d9d9;
+          cursor: not-allowed;
+        }
       `}</style>
       <div className="paper-grain" />
 
@@ -1119,10 +1181,13 @@ export default function OmarAISystemsLandingPage() {
             </div>
           </button>
 
-          <nav className="hidden items-center gap-8 text-[10px] font-black uppercase tracking-[0.22em] text-[#151515]/45 md:flex">
+          <nav className="hidden items-center gap-8 text-[10px] font-black uppercase tracking-[0.22em] md:flex">
             {navLinks.map((link) => (
-              <button key={link.label} onClick={() => scrollToSection(link.href)} className="nav-link relative transition hover:text-[#2454E8]">
+              <button key={link.label} onClick={() => scrollToSection(link.href)} className={`nav-link relative transition hover:text-[#2454E8] ${activeSection === link.href ? "text-[#2454E8]" : "text-[#151515]/45"}`}>
                 {link.label}
+                {activeSection === link.href && (
+                  <motion.span layoutId="nav-indicator" className="absolute -bottom-[6px] left-0 right-0 h-[2px] rounded-full bg-[#2454E8]" transition={{ type: "spring", stiffness: 380, damping: 30 }} />
+                )}
               </button>
             ))}
           </nav>
@@ -1204,15 +1269,23 @@ export default function OmarAISystemsLandingPage() {
             Winning ads come from repeated testing, clear hooks, strong creative direction, and a workflow that keeps shipping useful ideas every week.
           </p>
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
+        <motion.div
+          className="grid gap-4 md:grid-cols-3"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-80px" }}
+          variants={staggerContainer}
+        >
           {problemCards.map((card, index) => (
-            <PaperCard key={card.title} className="reveal-card">
-              <span className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-[#87916F]">0{index + 1}</span>
-              <h3 className="mt-8 font-serif text-4xl leading-none">{card.title}</h3>
-              <p className="mt-4 text-sm leading-7 text-[#151515]/65">{card.text}</p>
-            </PaperCard>
+            <motion.div key={card.title} variants={staggerItem} whileHover={{ y: -8, scale: 1.02 }}>
+              <PaperCard className="reveal-card">
+                <span className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-[#87916F]">0{index + 1}</span>
+                <h3 className="mt-8 font-serif text-4xl leading-none">{card.title}</h3>
+                <p className="mt-4 text-sm leading-7 text-[#151515]/65">{card.text}</p>
+              </PaperCard>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </section>
 
       <section id="services" className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
@@ -1270,7 +1343,13 @@ export default function OmarAISystemsLandingPage() {
         </div>
       </section>
 
-      <section className="relative z-10 mx-auto grid max-w-7xl gap-8 px-5 py-20 md:grid-cols-[0.85fr_1.15fr] md:px-8 md:items-center">
+      <motion.section
+        className="relative z-10 mx-auto grid max-w-7xl gap-8 px-5 py-20 md:grid-cols-[0.85fr_1.15fr] md:px-8 md:items-center"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-80px" }}
+        variants={sectionReveal}
+      >
         <div>
           <Label>Founder-led</Label>
           <h2 className="mt-6 font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">Why I built Creative Scaling.</h2>
@@ -1280,7 +1359,7 @@ export default function OmarAISystemsLandingPage() {
           <p className="mt-5 text-lg leading-8 text-[#151515]/72">So instead of only making videos, I built a full creative system: research, hooks, concepts, scripts, production, Creative Delivery, feedback, and Performance Review.</p>
           <span className="mt-6 inline-flex rounded-full bg-[#87916F]/20 px-3 py-2 font-mono text-xs font-bold uppercase tracking-[0.12em] text-[#526044]">A Growth Partner, not random one-off content</span>
         </PaperCard>
-      </section>
+      </motion.section>
 
       <section id="process" className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
         <div className="torn-edge bg-[#D85C9D]/75 px-6 py-12 shadow-[0_20px_60px_rgba(216,92,157,0.18)] md:px-12 md:py-16">
@@ -1303,7 +1382,7 @@ export default function OmarAISystemsLandingPage() {
         <div>
           <Label>Fit Filter</Label>
           <h2 className="mt-6 font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">
-            Built for Shopify brands ready to test seriously.
+            Built for <TypewriterText text="Shopify brands" speed={40} delay={400} /> ready to test seriously.
           </h2>
           <p className="mt-6 max-w-xl text-lg leading-8 text-[#151515]/70">
             The higher your testing volume, the more valuable the system becomes.
@@ -1333,17 +1412,31 @@ export default function OmarAISystemsLandingPage() {
 
       <section className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
         <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
-          <div><Label>Creative support</Label><h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">Services built around creative output and learning.</h2></div>
+          <div><Label>Creative support</Label><h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">Services built around <TypewriterText text="creative output" speed={40} delay={500} /> and learning.</h2></div>
           <p className="max-w-md text-base leading-7 text-[#151515]/65">Each service connects to a testing cycle, not a disconnected asset request.</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <motion.div
+          className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-80px" }}
+          variants={staggerContainer}
+        >
           {[
             ["Organic Creative", "TikTok, Reels, Shorts, product content, founder direction, and hook testing."],
             ["Paid Creative", "Meta and TikTok ads, UGC-style video, statics, product demos, and offer creatives."],
             ["Creative Strategy", "Competitor research, hook library, angle development, roadmap, and product priorities."],
             ["Creative Systems", "Weekly sprints, delivery folders, feedback flow, Performance Reviews, and planning."],
-          ].map(([title, text], index) => <PaperCard key={title} className="reveal-card"><span className="font-mono text-xs font-bold text-[#87916F]">0{index + 1}</span><h3 className="mt-8 font-serif text-3xl leading-none">{title}</h3><p className="mt-4 text-sm leading-7 text-[#151515]/65">{text}</p></PaperCard>)}
-        </div>
+          ].map(([title, text], index) => (
+            <motion.div key={title} variants={staggerItem} whileHover={{ y: -8, scale: 1.02 }}>
+              <PaperCard className="reveal-card">
+                <span className="font-mono text-xs font-bold text-[#87916F]">0{index + 1}</span>
+                <h3 className="mt-8 font-serif text-3xl leading-none">{title}</h3>
+                <p className="mt-4 text-sm leading-7 text-[#151515]/65">{text}</p>
+              </PaperCard>
+            </motion.div>
+          ))}
+        </motion.div>
       </section>
 
       <section id="pricing" className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
@@ -1353,30 +1446,53 @@ export default function OmarAISystemsLandingPage() {
             Starting prices that <TypewriterText text="set clear expectations" speed={35} delay={700} />.
           </h2>
         </div>
-        <div className="grid gap-4 lg:grid-cols-3">
+        <motion.div
+          className="grid gap-4 lg:grid-cols-3"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-80px" }}
+          variants={staggerContainer}
+        >
           {packages.map((item) => (
-            <PaperCard key={item.name} className={`relative ${item.recommended ? "border-[#2454E8]/45" : ""}`}>
-              {item.recommended && <span className="absolute right-5 top-5 rounded-full bg-[#2454E8] px-3 py-1 font-mono text-xs font-bold uppercase tracking-[0.12em] text-white">Recommended</span>}
-              <h3 className="font-serif text-5xl leading-none">{item.name}</h3>
-              <p className="mt-4 font-serif text-3xl font-bold leading-none text-[#2454E8]">Starting at {item.price}</p>
-              <p className="mt-4 text-sm leading-7 text-[#151515]/65">{item.copy}</p>
-              <div className="mt-6 grid gap-3">
-                {item.items.map((feature) => (
-                  <div key={feature} className="flex items-center gap-2 text-sm font-bold text-[#151515]/72">
-                    <CheckCircle2 className="h-4 w-4 text-[#2454E8]" />
-                    {feature}
-                  </div>
-                ))}
-              </div>
-            </PaperCard>
+            <motion.div key={item.name} variants={staggerItem} whileHover={{ y: -10, scale: 1.02 }}>
+              <PaperCard className={`relative ${item.recommended ? "border-[#2454E8]/45" : ""}`}>
+                {item.recommended && <span className="absolute right-5 top-5 rounded-full bg-[#2454E8] px-3 py-1 font-mono text-xs font-bold uppercase tracking-[0.12em] text-white">Recommended</span>}
+                <h3 className="font-serif text-5xl leading-none">{item.name}</h3>
+                <p className="mt-4 font-serif text-3xl font-bold leading-none text-[#2454E8]">Starting at {item.price}</p>
+                <p className="mt-4 text-sm leading-7 text-[#151515]/65">{item.copy}</p>
+                <div className="mt-6 grid gap-3">
+                  {item.items.map((feature) => (
+                    <div key={feature} className="flex items-center gap-2 text-sm font-bold text-[#151515]/72">
+                      <CheckCircle2 className="h-4 w-4 text-[#2454E8]" />
+                      {feature}
+                    </div>
+                  ))}
+                </div>
+              </PaperCard>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
         <p className="mt-6 max-w-3xl text-sm leading-7 text-[#151515]/62">Every package is customized around volume, cadence, support needs, and the current creative bottleneck. You are paying for strategy, research, hooks, production, delivery, feedback, and iteration—not random images or videos.</p>
       </section>
 
       <section className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
-        <div className="mb-10"><Label>Inside the system</Label><h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">What you receive inside the system.</h2><p className="mt-5 max-w-2xl text-lg leading-8 text-[#151515]/70">A clean operating system for connecting research, hooks, production, delivery, feedback, and performance learning.</p></div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{operatingItems.map((item, index) => <motion.div key={item} whileHover={{ y: -5 }} className="flex items-center gap-4 rounded-2xl border border-[#151515]/15 bg-[#F8F1E6]/80 p-5 shadow-sm"><span className="grid h-8 w-8 place-items-center rounded-full bg-[#2454E8] font-mono text-xs font-bold text-white">{String(index + 1).padStart(2, "0")}</span><p className="font-bold text-[#151515]/78">{item}</p></motion.div>)}</div>
+        <div className="mb-10"><Label>Inside the system</Label><h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">What you <TypewriterText text="receive inside" speed={40} delay={600} /> the system.</h2><p className="mt-5 max-w-2xl text-lg leading-8 text-[#151515]/70">A clean operating system for connecting research, hooks, production, delivery, feedback, and performance learning.</p></div>
+        <motion.div
+          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-60px" }}
+          variants={staggerContainer}
+        >
+          {operatingItems.map((item, index) => (
+            <motion.div key={item} variants={staggerItem} whileHover={{ y: -5 }}>
+              <div className="flex items-center gap-4 rounded-2xl border border-[#151515]/15 bg-[#F8F1E6]/80 p-5 shadow-sm">
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-[#2454E8] font-mono text-xs font-bold text-white">{String(index + 1).padStart(2, "0")}</span>
+                <p className="font-bold text-[#151515]/78">{item}</p>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
       </section>
 
       <section id="apply" className="relative z-10 mx-auto grid max-w-7xl gap-10 px-5 py-20 md:grid-cols-[0.82fr_1.18fr] md:px-8">
@@ -1402,7 +1518,23 @@ export default function OmarAISystemsLandingPage() {
 
       <section className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
         <div className="mb-10"><Label>After your Strategy Review</Label><h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">You will always know what happens next.</h2><p className="mt-5 max-w-2xl text-lg leading-8 text-[#151515]/70">From discovery to the next sprint, the process is clear: where files live, how feedback works, and what we are making next.</p></div>
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">{afterBookingSteps.map(([number, title, text]) => <PaperCard key={title} className="p-5"><span className="font-mono text-xs font-bold text-[#87916F]">{number}</span><h3 className="mt-4 font-serif text-2xl leading-none">{title}</h3><p className="mt-3 text-sm leading-6 text-[#151515]/65">{text}</p></PaperCard>)}</div>
+        <motion.div
+          className="grid gap-3 md:grid-cols-2 lg:grid-cols-4"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-60px" }}
+          variants={staggerContainer}
+        >
+          {afterBookingSteps.map(([number, title, text]) => (
+            <motion.div key={title} variants={staggerItem} whileHover={{ y: -6, scale: 1.01 }}>
+              <PaperCard className="p-5">
+                <span className="font-mono text-xs font-bold text-[#87916F]">{number}</span>
+                <h3 className="mt-4 font-serif text-2xl leading-none">{title}</h3>
+                <p className="mt-3 text-sm leading-6 text-[#151515]/65">{text}</p>
+              </PaperCard>
+            </motion.div>
+          ))}
+        </motion.div>
       </section>
 
       <section className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
@@ -1419,17 +1551,31 @@ export default function OmarAISystemsLandingPage() {
             <TypewriterText text="Clear answers" speed={40} delay={800} /> before the call.
           </h2>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
+        <motion.div
+          className="grid gap-4 md:grid-cols-2"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-80px" }}
+          variants={staggerContainer}
+        >
           {faqItems.map(([question, answer]) => (
-            <PaperCard key={question}>
-              <h3 className="font-serif text-3xl leading-none">{question}</h3>
-              <p className="mt-4 text-sm leading-7 text-[#151515]/65">{answer}</p>
-            </PaperCard>
+            <motion.div key={question} variants={staggerItem} whileHover={{ y: -5, scale: 1.01 }}>
+              <PaperCard>
+                <h3 className="font-serif text-3xl leading-none">{question}</h3>
+                <p className="mt-4 text-sm leading-7 text-[#151515]/65">{answer}</p>
+              </PaperCard>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </section>
 
-      <section className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
+      <motion.section
+        className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-60px" }}
+        variants={sectionReveal}
+      >
         <PaperCard className="grid gap-8 p-8 md:grid-cols-[1fr_auto] md:items-center md:p-10">
           <div>
             <Label>Final CTA</Label>
@@ -1442,7 +1588,7 @@ export default function OmarAISystemsLandingPage() {
           </div>
           <BlueButton href="/#apply">Start Application</BlueButton>
         </PaperCard>
-      </section>
+      </motion.section>
 
       <footer className="relative z-10 border-t border-[#151515]/10 px-5 py-10 md:px-8">
         <div className="mx-auto flex max-w-7xl flex-col justify-between gap-8 md:flex-row md:items-center">
