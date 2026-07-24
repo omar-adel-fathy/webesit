@@ -870,21 +870,21 @@ function JimmyChat() {
       if (!response.ok) {
         if (contentType.includes("application/json")) {
           const errData = await response.json().catch(() => ({}));
-          throw new Error(errData?.error || `Jimmy AI is not available right now. (${response.status})`);
+          throw new Error(errData?.error || "I need a moment before answering. Please send that again.");
         }
-        const text = await response.text().catch(() => "");
-        throw new Error(`Jimmy AI is not available right now. (${response.status})`);
+        await response.text().catch(() => "");
+        throw new Error("I need a moment before answering. Please send that again.");
       }
 
       if (!contentType.includes("application/json")) {
-        throw new Error("Jimmy AI returned an unexpected response. Try again in a moment.");
+        throw new Error("I need one more clear question about fit, pricing, or process.");
       }
 
       const data = await response.json();
-      setMessages((prev) => [...prev, { role: "assistant", content: data.reply || "Jimmy AI did not return a valid reply. Try again." }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: data.reply || "I need one more clear question about fit, pricing, or process." }]);
     } catch (error) {
       if (error.name === "AbortError") {
-        setMessages((prev) => [...prev, { role: "assistant", content: "Jimmy AI is taking too long. Please try again in a moment." }]);
+        setMessages((prev) => [...prev, { role: "assistant", content: "That took too long. Please send the question again." }]);
       } else {
         setMessages((prev) => [...prev, { role: "assistant", content: error.message || "Something went wrong. Try again." }]);
       }

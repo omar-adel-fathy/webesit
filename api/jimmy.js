@@ -67,6 +67,25 @@ function validateMessages(messages) {
   return { valid: true };
 }
 
+function getFallbackReply(messages) {
+  const latestUserMessage = [...messages].reverse().find((message) => message.role !== "assistant");
+  const text = String(latestUserMessage?.content || "").toLowerCase();
+
+  if (/\b(23\s*k|23k|20\s*%|profit|profitable|margin|revenue|sales)\b/i.test(text)) {
+    return "At $23k/month with around 20% profitability, I would be careful with a monthly creative retainer unless cash flow can support it.\n\nYou are close to the usual $30k+/month fit range, but I would first confirm product demand, current creative bottleneck, and whether better creative can realistically unlock more testing volume.\n\nAre you on Shopify?";
+  }
+
+  if (/\b(price|pricing|cost|package|starter|growth|scale|how much)\b/i.test(text)) {
+    return "Pricing depends on volume, cadence, and support needs.\n\nStarter starts at $2,000/mo, Growth at $5,000/mo, and Scale at $8,000/mo. The right fit depends on your revenue, product demand, and how much creative you need tested each month.\n\nWhat is your monthly revenue?";
+  }
+
+  if (/\b(book|apply|application|strategy review|call)\b/i.test(text)) {
+    return "Complete the Strategy Review application first. If there is a fit, booking options appear after the application.\n\nThe useful details are your Shopify store, monthly revenue, current creative output, and biggest bottleneck.";
+  }
+
+  return "I need one more detail to answer properly.\n\nAre you asking about fit, pricing, process, or what happens after the Strategy Review application?";
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
 
@@ -143,10 +162,9 @@ export default async function handler(req, res) {
       return;
     }
 
-    res.status(200).json({
-      reply: data?.choices?.[0]?.message?.content?.trim() || "I could not generate a reply. Try asking that another way.",
-    });
+    const reply = data?.choices?.[0]?.message?.content?.trim() || getFallbackReply(messages);
+    res.status(200).json({ reply });
   } catch (error) {
-    res.status(500).json({ error: error.message || "Jimmy AI failed" });
+    res.status(200).json({ reply: getFallbackReply(req.body?.messages || []) });
   }
 }
