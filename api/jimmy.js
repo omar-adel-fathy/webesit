@@ -28,6 +28,12 @@ const BLOCKED_PATTERNS = [
   /unlock/i, /crack/i, /illegal/i, /unauthorized/i,
 ];
 
+function getDeepSeekModel() {
+  const configuredModel = process.env.DEEPSEEK_MODEL || "deepseek-v4-flash";
+  const deprecatedModels = new Set(["deepseek-chat", "deepseek-reasoner"]);
+  return deprecatedModels.has(configuredModel) ? "deepseek-v4-flash" : configuredModel;
+}
+
 function getClientIp(req) {
   return req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
     req.headers["x-real-ip"] ||
@@ -62,21 +68,25 @@ function validateMessages(messages) {
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+
   if (req.method === "OPTIONS") {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
     res.status(204).end();
     return;
   }
 
+  if (req.method === "GET" || req.method === "HEAD") {
+    res.status(200).json({ ok: true, service: "jimmy" });
+    return;
+  }
+
   if (req.method !== "POST") {
-    res.setHeader("Access-Control-Allow-Origin", "*");
     res.status(405).json({ error: "Method not allowed" });
     return;
   }
 
-  res.setHeader("Access-Control-Allow-Origin", "*");
   const ip = getClientIp(req);
   if (!checkRateLimit(ip)) {
     res.status(429).json({ error: "Too many requests. Please wait and try again." });
@@ -105,7 +115,7 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: process.env.DEEPSEEK_MODEL || "deepseek-chat",
+        model: getDeepSeekModel(),
         temperature: 0.35,
         max_tokens: 450,
         messages: [

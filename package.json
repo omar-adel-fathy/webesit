@@ -5,7 +5,8 @@
     "dev:frontend": "vite --host 127.0.0.1",
     "dev:api": "node dev-server.js",
     "dev:all": "concurrently \"vite --host 127.0.0.1\" \"node dev-server.js\"",
-    "build": "vite build"
+    "build": "vite build",
+    "start": "node server.js"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.3.4",
