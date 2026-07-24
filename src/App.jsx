@@ -282,7 +282,7 @@ function OutlineButton({ children, href = "#" }) {
 
 function PaperCard({ children, className = "" }) {
   return (
-    <div className={`card-surface rounded-[2rem] border border-[#151515]/15 bg-[#F8F1E6]/85 p-6 shadow-[0_22px_70px_rgba(21,21,21,0.12)] backdrop-blur ${className}`}>
+    <div className={`card-surface rounded-[2rem] border border-[#151515]/15 bg-[#F8F1E6]/85 p-4 shadow-[0_22px_70px_rgba(21,21,21,0.12)] backdrop-blur md:p-6 ${className}`}>
       {children}
     </div>
   );
@@ -654,7 +654,7 @@ function ProcessCarousel({ steps }) {
             whileHover={{ scale: 1.02 }}
             className="min-w-[280px] snap-start md:min-w-[320px]"
           >
-            <PaperCard className="h-full p-5">
+            <PaperCard className="h-full p-4 md:p-5">
               <span className="font-mono text-xs text-[#151515]/35">{number}</span>
               <h3 className="mt-3 font-serif text-3xl leading-none">{title}</h3>
               <p className="mt-3 text-sm leading-6 text-[#151515]/65">{text}</p>
@@ -941,7 +941,7 @@ function JimmyChat() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 30, scale: 0.96 }}
               transition={{ duration: 0.28 }}
-              className="ml-auto flex h-full max-h-[760px] w-full max-w-[460px] flex-col overflow-hidden rounded-[2rem] bg-[#F8F1E6]/95 shadow-2xl"
+              className="mx-auto flex h-full max-h-[760px] w-full max-w-[460px] flex-col overflow-hidden rounded-[2rem] bg-[#F8F1E6]/95 shadow-2xl md:ml-auto md:mr-0"
               onClick={(event) => event.stopPropagation()}
             >
               <div className="flex items-center justify-between px-5 py-4">
@@ -1222,22 +1222,22 @@ export default function OmarAISystemsLandingPage() {
         </AnimatePresence>
       </header>
 
-      <section id="top" className="relative z-10 mx-auto grid max-w-7xl gap-12 px-5 pb-18 pt-28 md:grid-cols-[1fr_0.9fr] md:px-8 md:pb-24 md:pt-32">
+      <section id="top" className="relative z-10 mx-auto grid max-w-7xl gap-8 px-4 pb-12 pt-20 md:grid-cols-[1fr_0.9fr] md:gap-12 md:px-8 md:pb-24 md:pt-32">
         <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.7, ease: smoothSpring }} className="flex flex-col justify-center">
           <Label>Performance Creative Systems</Label>
-          <h1 className="hero-title mt-7 max-w-4xl font-serif text-[3.6rem] font-bold leading-[0.9] text-[#151515] sm:text-[5rem] md:text-[6.8rem] lg:text-[7.6rem]">
+          <h1 className="hero-title mt-7 max-w-4xl font-serif text-[2.5rem] font-bold leading-[1.04] text-[#151515] sm:text-[4.2rem] md:text-[6.8rem] lg:text-[7.6rem]">
             Build a creative engine for <AccentText>{typedHeadline}<span className="typed-cursor">|</span></AccentText>.
           </h1>
-          <p className="mt-8 max-w-2xl text-lg leading-8 text-[#151515]/72 md:text-xl">
+          <p className="mt-5 max-w-2xl text-base leading-7 text-[#151515]/72 md:mt-8 md:text-lg md:leading-8">
             We help Shopify brands launch performance statics, video creatives, and testing systems so they can test faster, learn faster, and stop running out of winning creatives.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row md:mt-8">
             <BlueButton href="/#apply">Book a Strategy Review</BlueButton>
             <OutlineButton href="#process">See How It Works</OutlineButton>
           </div>
-          <div className="mt-8 flex flex-wrap gap-2">
+          <div className="mt-6 flex flex-wrap gap-2 md:mt-8">
             {["Best for $30k+/month", "Paid + organic creative", "No random one-off assets"].map((item) => (
-              <span key={item} className="rounded-full border border-[#151515]/15 bg-[#F8F1E6]/75 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#151515]/60">
+              <span key={item} className="rounded-full border border-[#151515]/15 bg-[#F8F1E6]/75 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-[#151515]/60 md:px-4 md:py-2 md:text-xs">
                 {item}
               </span>
             ))}
@@ -1246,22 +1246,22 @@ export default function OmarAISystemsLandingPage() {
         <BrandSystemVisual />
       </section>
 
-      <section className="relative z-10 mx-auto max-w-7xl px-5 pb-16 md:px-8">
-        <div className="grid gap-4 md:grid-cols-4">
+      <section className="relative z-10 mx-auto max-w-7xl px-4 pb-10 md:px-8 md:pb-16">
+        <div className="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-4">
           {proofStats.map(([value, label], index) => (
-            <motion.div key={label} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={fadeUp} transition={{ duration: 0.55, delay: index * 0.05, ease: smoothSpring }} whileHover={{ y: -8, scale: 1.015 }} className="reveal-card rounded-[2rem] border border-[#151515]/15 bg-[#F8F1E6]/75 p-5 shadow-sm">
-              <p className="font-serif text-5xl font-semibold leading-none text-[#2454E8]">{value}</p>
-              <p className="mt-4 text-sm font-black uppercase tracking-[0.16em] text-[#151515]/70">{label}</p>
+            <motion.div key={label} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={fadeUp} transition={{ duration: 0.55, delay: index * 0.05, ease: smoothSpring }} whileHover={{ y: -8, scale: 1.015 }} className="reveal-card rounded-[2rem] border border-[#151515]/15 bg-[#F8F1E6]/75 p-4 shadow-sm md:p-5">
+              <p className="font-serif text-3xl font-semibold leading-none text-[#2454E8] sm:text-4xl md:text-5xl">{value}</p>
+              <p className="mt-3 text-xs font-black uppercase tracking-[0.16em] text-[#151515]/70 sm:text-sm md:mt-4">{label}</p>
             </motion.div>
           ))}
         </div>
       </section>
 
-      <section className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
+      <section className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
         <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <Label>The real problem</Label>
-            <h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">
+            <h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">
               Most brands do not have a media buying problem. They have a <AccentText><TypewriterText text="creative system" speed={40} delay={500} /></AccentText> problem.
             </h2>
           </div>
@@ -1288,10 +1288,10 @@ export default function OmarAISystemsLandingPage() {
         </motion.div>
       </section>
 
-      <section id="services" className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
+      <section id="services" className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
         <div className="mb-10">
           <Label>Services</Label>
-          <h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">
+          <h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">
             Output and learning, not more <AccentText><TypewriterText text="random content" speed={40} delay={800} /></AccentText>.
           </h2>
         </div>
@@ -1314,15 +1314,15 @@ export default function OmarAISystemsLandingPage() {
         </div>
       </section>
 
-      <section id="case-study" className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
+      <section id="case-study" className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
         <div className="editorial-panel relative overflow-hidden rounded-[2rem] border border-[#151515]/15 bg-[#F8F1E6]/88 p-6 text-[#151515] shadow-[0_30px_90px_rgba(21,21,21,0.12)] md:p-10">
           <div className="relative z-10 grid gap-10 md:grid-cols-[0.95fr_1.05fr] md:items-center">
             <div>
               <Label>Owned Proof</Label>
-              <h2 className="mt-7 max-w-3xl font-serif text-6xl font-bold leading-[0.86] md:text-8xl">
+              <h2 className="mt-7 max-w-3xl font-serif text-3xl font-bold leading-[0.94] sm:text-5xl sm:leading-[0.90] md:text-8xl md:leading-[0.86]">
                 HER ALTAR was the <TypewriterText text="testing ground" speed={40} delay={600} />.
               </h2>
-              <p className="mt-6 max-w-xl text-lg leading-8 text-[#151515]/70">
+              <p className="mt-6 max-w-xl text-base leading-7 text-[#151515]/70 md:text-lg md:leading-8">
                 A real Shopify brand built with product selection, store design, creative direction, content strategy, organic content, and paid creative thinking.
               </p>
             </div>
@@ -1344,7 +1344,7 @@ export default function OmarAISystemsLandingPage() {
       </section>
 
       <motion.section
-        className="relative z-10 mx-auto grid max-w-7xl gap-8 px-5 py-20 md:grid-cols-[0.85fr_1.15fr] md:px-8 md:items-center"
+        className="relative z-10 mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-[0.85fr_1.15fr] md:px-8 md:py-20 md:items-center"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-80px" }}
@@ -1352,22 +1352,22 @@ export default function OmarAISystemsLandingPage() {
       >
         <div>
           <Label>Founder-led</Label>
-          <h2 className="mt-6 font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">Why I built Creative Scaling.</h2>
+          <h2 className="mt-6 font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">Why I built Creative Scaling.</h2>
         </div>
         <PaperCard>
-          <p className="text-lg leading-8 text-[#151515]/72">I built Creative Scaling after building my own Shopify brand from the ground up. I saw how hard it was to create content that fit the brand, explained the product, tested the right hooks, and supported both organic growth and paid acquisition.</p>
-          <p className="mt-5 text-lg leading-8 text-[#151515]/72">So instead of only making videos, I built a full creative system: research, hooks, concepts, scripts, production, Creative Delivery, feedback, and Performance Review.</p>
+          <p className="text-base leading-7 text-[#151515]/72 md:text-lg md:leading-8">I built Creative Scaling after building my own Shopify brand from the ground up. I saw how hard it was to create content that fit the brand, explained the product, tested the right hooks, and supported both organic growth and paid acquisition.</p>
+          <p className="mt-4 text-base leading-7 text-[#151515]/72 md:mt-5 md:text-lg md:leading-8">So instead of only making videos, I built a full creative system: research, hooks, concepts, scripts, production, Creative Delivery, feedback, and Performance Review.</p>
           <span className="mt-6 inline-flex rounded-full bg-[#87916F]/20 px-3 py-2 font-mono text-xs font-bold uppercase tracking-[0.12em] text-[#526044]">A Growth Partner, not random one-off content</span>
         </PaperCard>
       </motion.section>
 
-      <section id="process" className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
-        <div className="torn-edge bg-[#D85C9D]/75 px-6 py-12 shadow-[0_20px_60px_rgba(216,92,157,0.18)] md:px-12 md:py-16">
-          <div className="grid gap-8 md:grid-cols-[0.85fr_1.15fr] md:items-center">
-            <h2 className="font-serif text-5xl font-semibold leading-[0.92] text-[#151515] md:text-7xl">
+      <section id="process" className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
+        <div className="torn-edge bg-[#D85C9D]/75 px-4 py-8 shadow-[0_20px_60px_rgba(216,92,157,0.18)] sm:px-8 sm:py-12 md:px-12 md:py-16">
+          <div className="grid gap-6 md:grid-cols-[0.85fr_1.15fr] md:gap-8 md:items-center">
+            <h2 className="font-serif text-3xl font-semibold leading-[1.02] text-[#151515] sm:text-5xl sm:leading-[0.92] md:text-7xl">
               How the Creative Scaling system works.
             </h2>
-            <div className="space-y-5 text-lg leading-8 text-[#151515]/78">
+            <div className="space-y-4 text-base leading-7 text-[#151515]/78 md:space-y-5 md:text-lg md:leading-8">
               <p>We do not just make assets. We build a weekly system for deciding what to make, why it matters, where it will be used, and what it should test.</p>
               <p className="font-serif text-3xl font-bold leading-none text-white">Creative Delivery. Performance Review. Next Sprint.</p>
             </div>
@@ -1378,13 +1378,13 @@ export default function OmarAISystemsLandingPage() {
         </div>
       </section>
 
-      <section className="relative z-10 mx-auto grid max-w-7xl gap-8 px-5 py-20 md:grid-cols-[0.9fr_1.1fr] md:px-8 md:items-center">
+      <section className="relative z-10 mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-[0.9fr_1.1fr] md:px-8 md:py-20 md:items-center">
         <div>
           <Label>Fit Filter</Label>
-          <h2 className="mt-6 font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">
+          <h2 className="mt-6 font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">
             Built for <TypewriterText text="Shopify brands" speed={40} delay={400} /> ready to test seriously.
           </h2>
-          <p className="mt-6 max-w-xl text-lg leading-8 text-[#151515]/70">
+          <p className="mt-6 max-w-xl text-base leading-7 text-[#151515]/70 md:text-lg md:leading-8">
             The higher your testing volume, the more valuable the system becomes.
           </p>
           <div className="mt-8 flex flex-wrap gap-2">
@@ -1410,9 +1410,9 @@ export default function OmarAISystemsLandingPage() {
         </PaperCard>
       </section>
 
-      <section className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
+      <section className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
         <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
-          <div><Label>Creative support</Label><h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">Services built around <TypewriterText text="creative output" speed={40} delay={500} /> and learning.</h2></div>
+          <div><Label>Creative support</Label><h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">Services built around <TypewriterText text="creative output" speed={40} delay={500} /> and learning.</h2></div>
           <p className="max-w-md text-base leading-7 text-[#151515]/65">Each service connects to a testing cycle, not a disconnected asset request.</p>
         </div>
         <motion.div
@@ -1439,10 +1439,10 @@ export default function OmarAISystemsLandingPage() {
         </motion.div>
       </section>
 
-      <section id="pricing" className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
+      <section id="pricing" className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
         <div className="mb-10">
           <Label>Packages</Label>
-          <h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">
+          <h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">
             Starting prices that <TypewriterText text="set clear expectations" speed={35} delay={700} />.
           </h2>
         </div>
@@ -1475,8 +1475,8 @@ export default function OmarAISystemsLandingPage() {
         <p className="mt-6 max-w-3xl text-sm leading-7 text-[#151515]/62">Every package is customized around volume, cadence, support needs, and the current creative bottleneck. You are paying for strategy, research, hooks, production, delivery, feedback, and iteration—not random images or videos.</p>
       </section>
 
-      <section className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
-        <div className="mb-10"><Label>Inside the system</Label><h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">What you <TypewriterText text="receive inside" speed={40} delay={600} /> the system.</h2><p className="mt-5 max-w-2xl text-lg leading-8 text-[#151515]/70">A clean operating system for connecting research, hooks, production, delivery, feedback, and performance learning.</p></div>
+      <section className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
+        <div className="mb-10"><Label>Inside the system</Label><h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">What you <TypewriterText text="receive inside" speed={40} delay={600} /> the system.</h2><p className="mt-5 max-w-2xl text-base leading-7 text-[#151515]/70 md:text-lg md:leading-8">A clean operating system for connecting research, hooks, production, delivery, feedback, and performance learning.</p></div>
         <motion.div
           className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
           initial="hidden"
@@ -1498,10 +1498,10 @@ export default function OmarAISystemsLandingPage() {
       <section id="apply" className="relative z-10 mx-auto grid max-w-7xl gap-10 px-5 py-20 md:grid-cols-[0.82fr_1.18fr] md:px-8">
         <div className="flex flex-col justify-center">
           <Label>Apply Then Book</Label>
-          <h2 className="mt-6 font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">
+          <h2 className="mt-6 font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">
             Complete the short application before booking.
           </h2>
-          <p className="mt-6 max-w-lg text-lg leading-8 text-[#151515]/70">
+          <p className="mt-6 max-w-lg text-base leading-7 text-[#151515]/70 md:text-lg md:leading-8">
             This protects the calendar and makes the Strategy Review more premium. Once the application is submitted, the booking calendar appears.
           </p>
           <div className="mt-8 grid gap-3">
@@ -1516,8 +1516,8 @@ export default function OmarAISystemsLandingPage() {
         <ApplicationFlow />
       </section>
 
-      <section className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
-        <div className="mb-10"><Label>After your Strategy Review</Label><h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">You will always know what happens next.</h2><p className="mt-5 max-w-2xl text-lg leading-8 text-[#151515]/70">From discovery to the next sprint, the process is clear: where files live, how feedback works, and what we are making next.</p></div>
+      <section className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
+        <div className="mb-10"><Label>After your Strategy Review</Label><h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">You will always know what happens next.</h2><p className="mt-5 max-w-2xl text-base leading-7 text-[#151515]/70 md:text-lg md:leading-8">From discovery to the next sprint, the process is clear: where files live, how feedback works, and what we are making next.</p></div>
         <motion.div
           className="grid gap-3 md:grid-cols-2 lg:grid-cols-4"
           initial="hidden"
@@ -1527,7 +1527,7 @@ export default function OmarAISystemsLandingPage() {
         >
           {afterBookingSteps.map(([number, title, text]) => (
             <motion.div key={title} variants={staggerItem} whileHover={{ y: -6, scale: 1.01 }}>
-              <PaperCard className="p-5">
+              <PaperCard className="p-4 md:p-5">
                 <span className="font-mono text-xs font-bold text-[#87916F]">{number}</span>
                 <h3 className="mt-4 font-serif text-2xl leading-none">{title}</h3>
                 <p className="mt-3 text-sm leading-6 text-[#151515]/65">{text}</p>
@@ -1537,17 +1537,17 @@ export default function OmarAISystemsLandingPage() {
         </motion.div>
       </section>
 
-      <section className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
-        <PaperCard className="grid gap-8 p-7 md:grid-cols-[1fr_0.82fr] md:p-10">
-          <div><Label>Ask Jimmy</Label><h2 className="mt-6 font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">Ask Jimmy about Creative Scaling.</h2><p className="mt-5 max-w-xl text-lg leading-8 text-[#151515]/70">Jimmy gives direct, qualified answers about the offer, packages, onboarding, pricing, creative process, and whether this is a fit for your brand.</p></div>
+      <section className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
+        <PaperCard className="grid gap-6 p-4 md:grid-cols-[1fr_0.82fr] md:gap-8 md:p-10">
+          <div><Label>Ask Jimmy</Label><h2 className="mt-6 font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">Ask Jimmy about Creative Scaling.</h2><p className="mt-5 max-w-xl text-base leading-7 text-[#151515]/70 md:text-lg md:leading-8">Jimmy gives direct, qualified answers about the offer, packages, onboarding, pricing, creative process, and whether this is a fit for your brand.</p></div>
           <div className="rounded-[1.5rem] border border-[#151515]/15 bg-[#F3EBDD] p-5"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-[#151515] text-white"><Bot className="h-5 w-5" /></div><div><p className="font-bold">Jimmy AI</p><p className="text-xs text-[#151515]/55">Short, structured, content-aware answers</p></div></div><div className="mt-5 space-y-2">{["Which package is right for my brand?", "What happens after I book?", "Why does Creative Scaling cost more?"].map((question) => <p key={question} className="rounded-xl bg-white/65 p-3 text-sm font-semibold text-[#151515]/70">{question}</p>)}</div><button type="button" onClick={() => window.dispatchEvent(new Event("open-jimmy"))} className="mt-5 text-sm font-black text-[#2454E8]">Open Jimmy →</button></div>
         </PaperCard>
       </section>
 
-      <section id="faq" className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8">
+      <section id="faq" className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
         <div className="mb-10">
           <Label>FAQ</Label>
-          <h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">
+          <h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">
             <TypewriterText text="Clear answers" speed={40} delay={800} /> before the call.
           </h2>
         </div>
@@ -1570,19 +1570,19 @@ export default function OmarAISystemsLandingPage() {
       </section>
 
       <motion.section
-        className="relative z-10 mx-auto max-w-7xl px-5 py-20 md:px-8"
+        className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-60px" }}
         variants={sectionReveal}
       >
-        <PaperCard className="grid gap-8 p-8 md:grid-cols-[1fr_auto] md:items-center md:p-10">
+        <PaperCard className="grid gap-6 p-4 md:grid-cols-[1fr_auto] md:items-center md:gap-8 md:p-10">
           <div>
             <Label>Final CTA</Label>
-            <h2 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.94] md:text-7xl">
+            <h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">
               Stop running out of winning creative.
             </h2>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-[#151515]/70">
+            <p className="mt-6 max-w-2xl text-base leading-7 text-[#151515]/70 md:text-lg md:leading-8">
               Apply for a Strategy Review and see what your first Creative Sprint should focus on.
             </p>
           </div>

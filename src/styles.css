@@ -793,6 +793,7 @@ footer a {
     text-transform: capitalize;
     font-weight: 800;
   }
+
   .section-grid,
   .links-section,
   .split,
@@ -800,8 +801,11 @@ footer a {
   .statement,
   .contact-section {
     grid-template-columns: 1fr;
+    gap: 28px;
   }
-  .founder-collage { min-height: 520px; }
+
+  .founder-collage { min-height: 460px; }
+
   .link-grid,
   .card-grid,
   .case-grid,
@@ -809,6 +813,9 @@ footer a {
     grid-template-columns: repeat(2, 1fr);
   }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .ambient-one { width: 320px; height: 320px; right: -120px; }
+  .ambient-two { width: 280px; height: 280px; left: -100px; }
 }
 
 @media (max-width: 640px) {
@@ -822,14 +829,20 @@ footer a {
   footer {
     width: min(100% - 28px, 1240px);
   }
-  .site-header { padding-inline: 14px; }
-  h1 { font-size: 4.1rem; }
-  h2 { font-size: 3.45rem; }
-  .hero { padding-top: 48px; }
+
+  h1 { font-size: 2.5rem; line-height: 1.05; }
+  h2 { font-size: 2.1rem; line-height: 1.08; }
+  h3 { font-size: 1.5rem; }
+
+  .hero-title { letter-spacing: -0.02em; }
+
+  .site-header { padding-inline: 10px; }
+
   .button-row,
   .button {
     width: 100%;
   }
+
   .trust-row,
   .link-grid,
   .card-grid,
@@ -839,18 +852,32 @@ footer a {
   .contact-form > div {
     grid-template-columns: 1fr;
   }
-  .founder-collage { min-height: 470px; }
-  .portrait-card { inset: 36px 18px auto 28px; }
-  .note-card { width: 88%; bottom: 42px; }
-  .note-card p { font-size: 31px; }
-  .creator-badge { right: 0; bottom: 122px; }
+
+  .founder-collage { min-height: 400px; }
+  .portrait-card { inset: 24px 12px auto 18px; }
+  .note-card { width: 82%; bottom: 28px; padding: 18px; }
+  .note-card p { font-size: 24px; }
+  .creator-badge { right: 0; bottom: 100px; }
+
   .product-section,
   .statement,
   .contact-section {
-    padding: 24px;
+    padding: 20px;
   }
+
   .prompt-row { grid-template-columns: 1fr; gap: 4px; }
-  footer { align-items: flex-start; flex-direction: column; }
+  footer { align-items: flex-start; flex-direction: column; gap: 16px; }
+
+  .ambient-one { width: 200px; height: 200px; right: -60px; top: 80px; }
+  .ambient-two { width: 180px; height: 180px; left: -60px; bottom: -60px; }
+
+  .section-kicker::after { left: 20px; width: 48px; }
+  .section-kicker::before { left: 74px; width: 48px; }
+
+  .paper-card,
+  .card-surface {
+    padding: 16px;
+  }
 }
 
 .hero-title {
