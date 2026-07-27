@@ -17,7 +17,16 @@ app.get("/api/jimmy", jimmyHandler);
 app.head("/api/jimmy", jimmyHandler);
 app.post("/api/jimmy", jimmyHandler);
 
-app.use(express.static(path.join(__dirname, "dist")));
+app.use(
+  express.static(path.join(__dirname, "dist"), {
+    setHeaders(res, filePath) {
+      const fileName = path.basename(filePath);
+      if (fileName === "robots.txt" || fileName === "llms.txt") {
+        res.setHeader("X-Robots-Tag", "noindex, follow");
+      }
+    },
+  }),
+);
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
