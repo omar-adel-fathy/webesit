@@ -1,31 +1,29 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion, useScroll } from "framer-motion";
 import {
   ArrowUpRight,
   BarChart3,
   Bot,
   CheckCircle2,
   ChevronRight,
-  ClipboardCheck,
+  FolderGit2,
   Menu,
   MessageCircle,
-  MousePointerClick,
   PlaySquare,
   Plus,
-
-  Sparkles,
+  Send,
   Target,
   Workflow,
   X,
+  Zap,
 } from "lucide-react";
 import brandLogo from "../ChatGPT Image Jul 23, 2026, 02_16_52 AM.png";
 
-const calendarUrl =
-  "https://calendar.google.com/calendar/appointments/schedules/AcZssZ2h1UL-d25Vx4J5qkG9BDu-XIOB-zT31kIvy43Ec-N2V7RpfYooRGqSLHuE9yROmIHjEOrTeh-3?gv=true";
 const tallyFormId = import.meta.env.VITE_TALLY_FORM_ID || "WOkqMa";
-const headerApplyHref = `https://tally.so/embed/${tallyFormId}?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1`;
 
 const navLinks = [
+  { label: "Apply", href: "#apply" },
+  { label: "Interactive Plan", href: "#interactive-plan" },
   { label: "Services", href: "#services" },
   { label: "Process", href: "#process" },
   { label: "Case Study", href: "#case-study" },
@@ -34,24 +32,27 @@ const navLinks = [
 ];
 
 const proofStats = [
-  ["700K+", "organic views from owned brand content"],
-  ["7K+", "followers in roughly 10 days"],
-  ["Weekly", "creative delivery and testing sprints"],
-  ["$30K+", "monthly revenue best-fit threshold"],
+  { value: "700K+", label: "organic views", highlight: true },
+  { value: "7K+", label: "followers in ~10 days", highlight: false },
+  { value: "Weekly", label: "creative delivery", highlight: false },
+  { value: "$30K+", label: "best-fit threshold", highlight: false },
 ];
 
 const problemCards = [
   {
+    kicker: "01 — FATIGUE",
     title: "Creative fatigue hits too fast",
-    text: "Winners stop working before the next useful batch of concepts is ready.",
+    text: "Your winners stop working, but the next batch of creatives is not ready.",
   },
   {
-    title: "Output is not tied to learning",
-    text: "The team makes more assets, but the tests do not reveal what to do next.",
+    kicker: "02 — RANDOM",
+    title: "Content is made randomly",
+    text: "The team makes more assets, but not more useful tests.",
   },
   {
-    title: "No clear creative engine",
-    text: "Hooks, concepts, production, delivery, feedback, and performance review are disconnected.",
+    kicker: "03 — NO ENGINE",
+    title: "There is no creative engine",
+    text: "Ideas, hooks, scripts, production, delivery, feedback, and performance review are not connected.",
   },
 ];
 
@@ -59,784 +60,603 @@ const services = [
   {
     icon: Target,
     title: "Performance Statics",
-    text: "Static ad creatives built to test hooks, products, offers, angles, retargeting, and product storytelling.",
+    text: "Static ad creatives designed for testing angles, offers, products, and hooks.",
+    bullets: ["Meta & TikTok ads", "Retargeting assets", "Product storytelling", "Offer testing"],
   },
   {
     icon: PlaySquare,
     title: "Performance Video Creatives",
-    text: "Short-form paid and organic videos for TikTok, Reels, Shorts, Meta, UGC-style tests, and product demos.",
+    text: "Short-form video creatives built for paid ads and organic content.",
+    bullets: ["TikTok & Instagram Reels", "YouTube Shorts", "Meta video ads", "UGC-style testing"],
   },
   {
     icon: BarChart3,
     title: "Creative Strategy",
-    text: "Hook research, competitor patterns, testing priorities, creative angles, and a weekly roadmap.",
+    text: "The planning layer behind the output that decides what to make and why.",
+    bullets: ["Hook & competitor research", "Creative testing angles", "Testing roadmap", "Weekly planning"],
   },
   {
     icon: Workflow,
     title: "Creative Systems",
-    text: "Sprint planning, delivery folders, feedback flow, usage notes, performance review, and next-sprint planning.",
+    text: "The operating system that keeps production clear and organized.",
+    bullets: ["Weekly creative sprints", "Drive delivery structure", "Feedback tracking", "Performance review"],
   },
 ];
 
-const processSteps = [
-  ["01", "Discovery", "Brand, offer, products, audience, creative process, and bottlenecks."],
-  ["02", "Strategy", "Priorities, angles, offers, and the first testing roadmap."],
-  ["03", "Research", "Competitors, customer pain points, past winners, and market patterns."],
-  ["04", "Hooks", "Hook directions and testing hypotheses for the sprint."],
-  ["05", "Concepts", "Clear creative directions before production begins."],
-  ["06", "Production", "Performance statics and video creatives based on the sprint plan."],
-  ["07", "Creative Delivery", "Organized files with platform, hook, CTA, and usage notes."],
-  ["08", "Testing", "Assets enter the paid or organic testing cycle."],
-  ["09", "Feedback", "One clear feedback flow keeps revisions focused."],
-  ["10", "Performance Review", "Signals and learnings guide stronger decisions."],
-  ["11", "Next Sprint", "The next batch starts from what the last one taught us."],
-];
-
-const operatingItems = [
-  "Creative Strategy", "Hook Library", "Competitor Research Board", "Creative Briefs", "Weekly Creative Sprint Board", "Performance Statics", "Performance Video Creatives", "Creative Delivery Folder", "Feedback Tracker", "Monthly Performance Review", "Next Sprint Plan",
+const timelineSteps = [
+  { num: "01", name: "Discovery", desc: "Brand, offer, products, audience, current creative process, and bottlenecks." },
+  { num: "02", name: "Strategy", desc: "Priorities, angles, offers, and the first creative roadmap." },
+  { num: "03", name: "Research", desc: "Competitors, customer pain points, past winners, and market patterns." },
+  { num: "04", name: "Hooks", desc: "Hook directions and testing hypotheses for the sprint." },
+  { num: "05", name: "Production", desc: "Performance statics and video creatives based on the sprint plan." },
+  { num: "06", name: "Delivery", desc: "Creative Delivery organized in Drive with notes, platform, hook, CTA, and usage guidance." },
+  { num: "07", name: "Review", desc: "Feedback, learnings, performance signals, and next sprint planning." },
 ];
 
 const afterBookingSteps = [
-  ["01", "Apply or book", "Share your brand, revenue range, current output, and biggest creative bottleneck."],
-  ["02", "Discovery call", "We review your brand, offer, creative process, and goals."],
-  ["03", "Recommendation", "If there is a fit, we recommend the best package and the first Creative Sprint."],
-  ["04", "Proposal and contract", "You receive the plan, timeline, investment, terms, and delivery structure."],
-  ["05", "Onboarding", "You upload assets and get access to the Growth Partner Workspace."],
-  ["06", "Kickoff and strategy", "We align priorities, approvals, and the first testing roadmap."],
-  ["07", "Weekly production", "Organized Creative Delivery arrives each week with testing notes."],
-  ["08", "Review and next sprint", "We review feedback and signals, then plan what comes next."],
+  { number: "01", title: "Apply", text: "Submit the Tally form. You are automatically forwarded to the booking calendar." },
+  { number: "02", title: "Discovery call", text: "We review your brand, offer, creative process, and goals." },
+  { number: "03", title: "Recommendation", text: "If there is a fit, we recommend the best package and the first Creative Sprint." },
+  { number: "04", title: "Proposal", text: "You receive the plan, timeline, investment, terms, and delivery structure." },
+  { number: "05", title: "Onboarding", text: "You upload assets and get access to the Growth Partner Workspace." },
+  { number: "06", title: "Kickoff", text: "We align priorities, approvals, communication, and the first testing roadmap." },
+  { number: "07", title: "Weekly Production", text: "Organized Creative Delivery arrives each week with testing notes per asset." },
+  { number: "08", title: "Review & Next Sprint", text: "We review feedback and signals, then plan what comes next." },
 ];
 
-const packages = [
+const packagesList = [
   {
-    name: "Starter",
-    price: "$2,000/mo",
-    copy: "For brands beginning structured creative testing.",
-    items: ["20 Performance Statics", "Up to 7 Performance Videos", "Creative strategy", "Monthly planning", "2 revision rounds"],
+    name: "Pilot Sprint",
+    price: "$1,200",
+    priceKicker: "One-off evaluation",
+    copy: "Test the Creative Scaling workflow before committing monthly.",
+    terms: "$500 deposit · $700 upon delivery",
+    items: [
+      "10 Performance Statics",
+      "3 Performance Video Creatives",
+      "Hook Library included",
+      "6-day turnaround",
+      "100% credit toward Growth if upgraded within 14 days",
+    ],
   },
   {
-    name: "Growth",
-    price: "$5,000/mo",
-    copy: "For brands scaling paid and organic creative output.",
-    items: ["45 Performance Statics", "Up to 18 Performance Videos", "Weekly strategy calls", "Competitor research", "Priority production"],
+    name: "Beta Growth",
+    price: "$2,000/mo",
+    priceKicker: "Core beta offer",
+    copy: "Build a structured creative testing system. Locked in before price increases to $3,500/mo.",
+    terms: "Retainer · locks in before price increase",
+    items: [
+      "20 Performance Statics per month",
+      "7 Performance Video Creatives per month",
+      "Weekly Sprint Board workspace",
+      "3 Winning Angles Guarantee",
+    ],
     recommended: true,
   },
   {
-    name: "Scale",
-    price: "$8,000/mo",
-    copy: "For brands running large creative testing programs.",
-    items: ["80 Performance Statics", "Up to 35 Performance Videos", "Weekly Performance Reviews", "Custom planning", "Highest priority queue"],
+    name: "Scale Partner",
+    price: "$4,500/mo",
+    priceKicker: "High-volume speed",
+    copy: "High-volume beta for brands that need more creative testing speed.",
+    terms: "$1,500 deposit · $3,000 on approval",
+    items: [
+      "45 Performance Statics per month",
+      "18 Performance Video Creatives per month",
+      "72-hour priority queue",
+      "Pay-On-Approval: balance due after batch review",
+    ],
   },
 ];
 
 const faqItems = [
-  ["Is this just editing?", "No. Creative Scaling combines research, hooks, strategy, production, delivery, feedback, and performance review."],
-  ["Who is this for?", "Shopify brands doing $30k+/month or more with a product that already has demand and a need for consistent creative output."],
-  ["Do you guarantee ad results?", "No. The goal is a better testing engine: faster output, clearer learning, and stronger creative decisions."],
-  ["Why apply before booking?", "The application protects the calendar and makes the Strategy Review more useful for brands that are likely to fit."],
-  ["Do you work with brands under $30k/month?", "Sometimes, but the system is usually most valuable once a brand has demand, traffic, or active testing. Jimmy can help you understand what to prepare first."],
-  ["Do you run ads?", "Creative Scaling focuses on the creative powering paid and organic growth. We work alongside your media buyer or internal team."],
-  ["Do you make content for both organic and paid?", "Yes. The system supports discovery content and conversion-focused creative testing."],
-  ["What do you need from us to start?", "Your website, products, brand assets, past creatives, customer insights, competitors, and performance context when available."],
-  ["How are revisions handled?", "One clear feedback flow keeps changes from getting lost. Each package has a defined revision structure."],
-  ["How is delivery handled?", "Creative Delivery lives in a shared Drive workspace with weekly folders, usage notes, and feedback tracking."],
-  ["Can you help with automations later?", "Yes. Automation and AI support can be added after the creative system is clear."],
+  { q: "Who is Creative Scaling for?", a: "Shopify brands doing $30k+/month that need a more consistent system for producing and testing performance creatives across paid ads and organic content." },
+  { q: "Do you work with brands under $30k/month?", a: "Sometimes. The system is usually most valuable once a brand has demand and active testing. Jimmy AI can help you understand what to prepare before booking." },
+  { q: "Do you run ads?", a: "No. Creative Scaling focuses on the creatives powering paid and organic growth. We work alongside your media buyer or internal team." },
+  { q: "Do you make content for both organic and paid?", a: "Yes. The system supports discovery content and conversion-focused creative testing." },
+  { q: "What do you need from us to start?", a: "Your website, product information, brand assets, past creatives, customer insights, competitors, and performance context. For paid testing we also need view-only Ads Manager access." },
+  { q: "How are revisions handled?", a: "One clear feedback flow per sprint. Each package has a defined revision structure so nothing gets lost across messages." },
+  { q: "How is delivery handled?", a: "Creative Delivery lives in a shared Drive workspace with weekly folders, asset notes, usage guidance, and feedback tracking." },
+  { q: "Why do you charge premium pricing?", a: "You are not paying for isolated files. You are paying for strategy, research, creative direction, production, weekly planning, organized delivery, feedback, and ongoing testing." },
+  { q: "Do you guarantee ad results?", a: "We guarantee creative performance against an agreed testing benchmark. If a sprint fails to produce winning angles, we iterate for free until the baseline CPA/CTR is reached. We do not guarantee ROAS or sales." },
+  { q: "What makes Creative Scaling different from cheap AI creative?", a: "We combine high-end human brand direction with AI speed to deliver studio-grade ads — not buggy dropshipping-looking visuals." },
 ];
 
-const applicationSteps = [
-  {
-    key: "brand",
-    label: "Brand",
-    title: "Tell us about the brand.",
-    fields: [
-      { name: "brandName", label: "Brand name", placeholder: "HER ALTAR", type: "text" },
-      { name: "website", label: "Website", placeholder: "https://yourstore.com", type: "url" },
-    ],
-  },
-  {
-    key: "stage",
-    label: "Stage",
-    title: "Where is the business now?",
-    fields: [
-      { name: "revenue", label: "Monthly revenue", type: "select", options: ["Under $30k", "$30k-$100k", "$100k-$250k", "$250k-$500k", "$500k+"] },
-      { name: "team", label: "Who owns creative now?", type: "select", options: ["Founder", "Internal team", "Media buyer", "Freelancers", "Mixed"] },
-    ],
-  },
-  {
-    key: "bottleneck",
-    label: "Bottleneck",
-    title: "What needs fixing first?",
-    fields: [
-      { name: "bottleneck", label: "Main bottleneck", type: "select", options: ["Creative fatigue", "Not enough assets", "Weak testing structure", "Need paid + organic support", "Not sure"] },
-      { name: "notes", label: "What is happening right now?", placeholder: "Short context helps us prep the call.", type: "textarea" },
-    ],
-  },
-];
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 28, filter: "blur(10px)" },
-  visible: { opacity: 1, y: 0, filter: "blur(0px)" },
-};
+// ---- Brand & Platform Logos ----
+const SHOPIFY_LOGO = "https://upload.wikimedia.org/wikipedia/commons/0/0e/Shopify_logo_2018.svg";
+const TIKTOK_LOGO = "https://upload.wikimedia.org/wikipedia/en/a/a9/TikTok_logo.svg";
+const META_LOGO = "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Meta_Platforms_Inc._logo.svg/1200px-Meta_Platforms_Inc._logo.svg.png";
+const HER_ALTAR_1 = "https://heraltar.shop/cdn/shop/files/ChatGPT_Image_May_27_2026_05_16_39_PM_0f693532-0cce-464f-a54e-32d4aeed18aa.png?v=1781612616&width=160";
+const HER_ALTAR_2 = "https://heraltar.shop/cdn/shop/files/ChatGPT_Image_May_27_2026_05_16_48_PM_bb30ded5-22c6-4b69-80ab-ff6ca3e75e81.png?v=1781612611&width=160";
 
 const smoothSpring = [0.16, 1, 0.3, 1];
 
-const staggerContainer = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.07, delayChildren: 0.12 },
-  },
+const fadeUp = {
+  hidden: { opacity: 0, y: 24, filter: "blur(6px)" },
+  visible: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.65, ease: smoothSpring } },
 };
 
-const staggerItem = {
-  hidden: { opacity: 0, y: 36, filter: "blur(10px)" },
-  visible: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.65, ease: smoothSpring },
-  },
-};
+// Empty placeholder — logos are now embedded per-section below
+function AmbientBlurredLogosBackground() { return null; }
 
-const sectionReveal = {
-  hidden: { opacity: 0, y: 40, filter: "blur(12px)" },
-  visible: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.8, ease: smoothSpring },
-  },
-};
-
-function TypewriterText({ text, speed = 35, delay = 0, className = "", tag: Tag = "span" }) {
-  const [displayed, setDisplayed] = useState("");
-  const [started, setStarted] = useState(false);
-  const indexRef = useRef(0);
-  const timerRef = useRef(null);
-
-  useEffect(() => {
-    const startTimeout = setTimeout(() => setStarted(true), delay);
-    return () => clearTimeout(startTimeout);
-  }, [delay]);
-
-  useEffect(() => {
-    if (!started) return;
-    indexRef.current = 0;
-    setDisplayed("");
-    timerRef.current = setInterval(() => {
-      if (indexRef.current < text.length) {
-        setDisplayed(text.slice(0, indexRef.current + 1));
-        indexRef.current++;
-      } else {
-        clearInterval(timerRef.current);
-      }
-    }, speed);
-    return () => clearInterval(timerRef.current);
-  }, [started, text, speed]);
-
+// Reusable blurred logo pair for each section
+function SectionBlurredLogos({ leftSrc, leftRound, rightSrc, rightRound }) {
   return (
-    <Tag className={className}>
-      {displayed}
-      {displayed !== text && <span className="typed-cursor">|</span>}
-    </Tag>
-  );
-}
-
-function Label({ children }) {
-  return (
-    <div className="section-kicker inline-flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#151515]/70">
-      <span className="h-1.5 w-1.5 rounded-full bg-[#2454E8]" />
-      {children}
-    </div>
-  );
-}
-
-function AccentText({ children }) {
-  return <span className="accent-word ink-underline inline-block text-[#2454E8]">{children}</span>;
-}
-
-function BlueButton({ children, href = "#", className = "", target }) {
-  return (
-    <a
-      href={href}
-      target={target}
-      rel={target === "_blank" ? "noreferrer noopener" : undefined}
-      className={`cool-button group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#2454E8] px-5 py-3 text-sm font-bold text-white shadow-[0_18px_45px_rgba(36,84,232,0.25)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_60px_rgba(36,84,232,0.35)] ${className}`}
-    >
-      {children}
-      <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-    </a>
-  );
-}
-
-function OutlineButton({ children, href = "#" }) {
-  return (
-    <a
-      href={href}
-      className="glass-button inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#151515]/20 bg-[#F3EBDD]/75 px-5 py-3 text-sm font-bold text-[#151515] shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#151515]/45 hover:bg-white/55"
-    >
-      {children}
-      <ChevronRight className="h-4 w-4" />
-    </a>
-  );
-}
-
-function PaperCard({ children, className = "" }) {
-  return (
-    <div className={`card-surface rounded-[2rem] border border-[#151515]/15 bg-[#F8F1E6]/85 p-4 shadow-[0_22px_70px_rgba(21,21,21,0.12)] backdrop-blur md:p-6 ${className}`}>
-      {children}
-    </div>
-  );
-}
-
-function BrandSystemVisual() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30, rotate: 1.5 }}
-      animate={{ opacity: 1, y: 0, rotate: -1 }}
-      transition={{ duration: 0.8, ease: smoothSpring }}
-      className="relative mx-auto w-full max-w-[520px]"
-    >
-      <div className="absolute -left-5 top-10 h-28 w-44 -rotate-6 bg-[#CBBF9A]/55 shadow-sm" />
-      <div className="absolute -right-4 bottom-20 h-28 w-28 overflow-hidden rounded-full border border-[#151515]/25">
-        <img src={brandLogo} alt="Brand Logo" className="h-full w-full object-cover" />
+    <>
+      {/* Left blurred logo */}
+      <div className={`blurred-logo-ambient left-0 top-1/2 -translate-y-1/2 -translate-x-1/4 w-32 h-32 md:w-44 md:h-44 ${leftRound ? "rounded-full overflow-hidden" : ""}`}>
+        <img src={leftSrc} alt="" className="w-full h-full object-contain" />
       </div>
-      <PaperCard className="relative overflow-hidden p-0">
-        <div className="flex items-center justify-between border-b border-[#151515]/15 px-5 py-4">
-          <div className="flex items-center gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#151515] text-white">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm font-extrabold tracking-tight">Creative Operating System</p>
-              <p className="text-xs text-[#151515]/55">weekly sprint board</p>
-            </div>
-          </div>
-          <span className="rounded-full bg-[#2454E8] px-3 py-1 font-mono text-xs font-bold text-white">LIVE</span>
-        </div>
-        <div className="grid gap-3 p-5">
-          {[
-            ["Research", "Competitors, reviews, market patterns"],
-            ["Hooks", "12 testing hypotheses"],
-            ["Production", "Statics + short-form videos"],
-            ["Delivery", "Usage notes, CTA, platform, angle"],
-            ["Review", "Signals, feedback, next sprint"],
-          ].map(([title, text], index) => (
-            <motion.div
-              key={title}
-              initial={{ opacity: 0, x: -20, scale: 0.95 }}
-              whileInView={{ opacity: 1, x: 0, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.12, duration: 0.4, ease: smoothSpring }}
-              className="flex items-center justify-between gap-4 rounded-2xl border border-[#151515]/10 bg-white/35 p-4"
+      {/* Right blurred logo */}
+      <div className={`blurred-logo-ambient right-0 top-1/2 -translate-y-1/2 translate-x-1/4 w-32 h-32 md:w-44 md:h-44 ${rightRound ? "rounded-full overflow-hidden" : ""}`}>
+        <img src={rightSrc} alt="" className="w-full h-full object-contain" />
+      </div>
+    </>
+  );
+}
+
+// ---- Interactive Actionable Strategy Plan Widget ----
+function InteractiveActionablePlan() {
+  const [activeStep, setActiveStep] = useState(0);
+
+  const steps = [
+    {
+      id: "01",
+      title: "1. Brand & Bottleneck Audit",
+      subtitle: "Qualify stage and bottleneck factors upfront",
+      deliverable: "Creative Testing Blueprint",
+      desc: "We analyze your Shopify store context, current winning ad angles, baseline CPA/CTR metrics, and inventory focus. We pinpoint exactly why past ads hit creative fatigue.",
+      actionPoints: [
+        "Audit top 10 past performing statics & video ads",
+        "Benchmark baseline CPA, CTR, and hook rates",
+        "Define 3 target audience avatars & offer hooks",
+      ],
+      tag: "AUDIT & BENCHMARK",
+      cls: "bg-blue-100 text-blue-900",
+    },
+    {
+      id: "02",
+      title: "2. Systemized Hook Matrix",
+      subtitle: "Generate high-converting hypotheses",
+      deliverable: "Weekly Hook Matrix & Briefs",
+      desc: "Instead of guessing, we engineer 10+ hook variations per sprint across visual hooks, text overlays, and audio angles designed to stop the scroll in the first 3 seconds.",
+      actionPoints: [
+        "Competitor ad angle mining & teardowns",
+        "Hybrid AI + Human script generation",
+        "Visual hook storyboard mapping",
+      ],
+      tag: "STRATEGY MATRIX",
+      cls: "bg-amber-100 text-amber-900",
+    },
+    {
+      id: "03",
+      title: "3. Hybrid AI Production Sprint",
+      subtitle: "Studio-grade quality delivered in 6 days",
+      deliverable: "Statics & Video Creatives Batch",
+      desc: "We combine high-end studio brand direction with AI speeds. Producing high-resolution statics and video ads ready to launch—without $5,000 agency fees or buggy AI spam.",
+      actionPoints: [
+        "10 Performance Statics per sprint batch",
+        "3-7 Short-form Video Creatives (Reels/TikTok/Meta)",
+        "Formatted for 9:16, 4:5, and 1:1 ratios",
+      ],
+      tag: "HYBRID PRODUCTION",
+      cls: "bg-purple-100 text-purple-900",
+    },
+    {
+      id: "04",
+      title: "4. Organized Drive Delivery",
+      subtitle: "Instant launch-ready workspace",
+      deliverable: "Drive Workspace & Testing Notes",
+      desc: "Creatives arrive organized in a shared Google Drive workspace with clear platform notes, hook names, suggested copy, CTA angles, and usage guidelines for your media buyer.",
+      actionPoints: [
+        "Platform-ready PNG & MP4 files with clean naming",
+        "Hook-by-hook placement recommendations",
+        "Feedback tracker sheet synced live",
+      ],
+      tag: "DRIVE DELIVERY",
+      cls: "bg-emerald-100 text-emerald-900",
+    },
+    {
+      id: "05",
+      title: "5. Scorecard & Guarantee Review",
+      subtitle: "Double down on winning angles",
+      deliverable: "Winning Angles Scorecard",
+      desc: "We evaluate real account performance. If we haven't hit at least 3 winning angles that beat your benchmark, our guarantee kicks in and we produce the next batch for free.",
+      actionPoints: [
+        "Identify winning ad angles (Winner / Scale / Retest)",
+        "Re-invest budget into high CTR/CPA combinations",
+        "Plan next weekly sprint based on real data",
+      ],
+      tag: "WINNING BENCHMARK",
+      cls: "bg-rose-100 text-rose-900",
+    },
+  ];
+
+  return (
+    <section id="interactive-plan" className="relative z-10 mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
+      <div className="mb-10 text-center max-w-3xl mx-auto space-y-3">
+        <div className="section-kicker">Interactive System Roadmap</div>
+        <h2 className="font-heading text-3xl font-extrabold sm:text-5xl text-[#111113]">
+          Actionable Creative Strategy Plan
+        </h2>
+        <p className="text-sm md:text-base text-[#111113]/75 font-medium">
+          Click through any step below to see exactly how Creative Scaling plans, produces, delivers, and benchmarks your ad creatives.
+        </p>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-12 items-start">
+        {/* Step selector list (5 cols) */}
+        <div className="lg:col-span-5 space-y-3">
+          {steps.map((s, idx) => (
+            <button
+              key={s.id}
+              onClick={() => setActiveStep(idx)}
+              className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between ${
+                activeStep === idx
+                  ? "bg-white border-[#2454E8] shadow-lg ring-1 ring-[#2454E8]/20"
+                  : "bg-white/60 border-[#CBBF9A]/60 hover:bg-white/80 text-[#111113]/70"
+              }`}
             >
-              <div>
-                <p className="font-serif text-2xl leading-none text-[#151515]">{title}</p>
-                <p className="mt-1 text-sm text-[#151515]/60">{text}</p>
+              <div className="flex items-center gap-3">
+                <span
+                  className={`grid h-8 w-8 place-items-center rounded-xl font-mono text-xs font-bold ${
+                    activeStep === idx
+                      ? "bg-[#2454E8] text-white"
+                      : "bg-[#F3EBDD] text-[#111113]"
+                  }`}
+                >
+                  {s.id}
+                </span>
+                <div>
+                  <p className="font-bold text-sm text-[#111113]">{s.title}</p>
+                  <p className="text-[11px] text-[#111113]/60">{s.subtitle}</p>
+                </div>
               </div>
-              <motion.div
-                initial={{ scale: 0, rotate: -90 }}
-                whileInView={{ scale: 1, rotate: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.12 + 0.2, type: "spring", stiffness: 200 }}
-              >
-                <CheckCircle2 className="h-5 w-5 shrink-0 text-[#2454E8]" />
-              </motion.div>
-            </motion.div>
+              <ChevronRight
+                className={`h-4 w-4 transition-transform ${
+                  activeStep === idx ? "translate-x-1 text-[#2454E8]" : "text-[#111113]/30"
+                }`}
+              />
+            </button>
           ))}
         </div>
-      </PaperCard>
-      <div className="absolute -bottom-4 right-8 rounded-full bg-[#D85C9D] px-4 py-2 text-xs font-extrabold uppercase tracking-[0.22em] text-white shadow-lg">
-        no random assets
+
+        {/* Step detail card (7 cols) */}
+        <div className="lg:col-span-7">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeStep}
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -12 }}
+              transition={{ duration: 0.25 }}
+              className="card-surface p-6 md:p-8 space-y-5 text-left h-full flex flex-col justify-between"
+            >
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className={`text-[10px] px-3 py-1 rounded-full font-bold font-mono uppercase tracking-wider ${steps[activeStep].cls}`}>
+                    {steps[activeStep].tag}
+                  </span>
+                  <span className="font-mono text-xs text-[#667350] font-bold">
+                    STEP {steps[activeStep].id} OF 05
+                  </span>
+                </div>
+
+                <h3 className="font-heading text-2xl font-extrabold text-[#111113]">
+                  {steps[activeStep].title}
+                </h3>
+
+                <p className="text-sm text-[#111113]/80 leading-6 font-medium">
+                  {steps[activeStep].desc}
+                </p>
+
+                <div className="border-t border-[#CBBF9A]/60 pt-4 space-y-2.5">
+                  <p className="font-mono text-[10px] font-bold text-[#667350] uppercase tracking-wider">
+                    Actionable Workflow Checklist:
+                  </p>
+                  {steps[activeStep].actionPoints.map((pt, i) => (
+                    <div key={i} className="flex items-start gap-2.5 text-xs md:text-sm font-semibold text-[#111113]">
+                      <CheckCircle2 className="h-4 w-4 text-[#2454E8] shrink-0 mt-0.5" />
+                      <span>{pt}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-[#CBBF9A]/60 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-mono text-[#111113]/50 uppercase font-bold">Deliverable:</span>
+                  <p className="text-xs font-bold text-[#2454E8]">{steps[activeStep].deliverable}</p>
+                </div>
+                <a
+                  href="#apply"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.querySelector("#apply")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="cool-button text-xs py-2 px-4"
+                >
+                  Apply for Strategy Review
+                </a>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
-    </motion.div>
+    </section>
   );
 }
 
-function ApplicationFlow() {
-  const [submitted, setSubmitted] = useState(() => localStorage.getItem("creative-scaling-tally-complete") === "true");
-  const [booked, setBooked] = useState(() => localStorage.getItem("creative-scaling-booked") === "true");
-  const [showManualFallback, setShowManualFallback] = useState(false);
-  const tallyRef = useRef(null);
-  const fallbackTimerRef = useRef(null);
+// ---- Workspace Dashboard Simulator ----
+function WorkspaceDashboardSimulator() {
+  const [activeTab, setActiveTab] = useState("sprint");
 
+  const tabs = [
+    { id: "sprint", label: "Sprint Board", icon: FolderGit2 },
+    { id: "hooks", label: "Hook Matrix", icon: Target },
+    { id: "drive", label: "Drive Delivery", icon: Workflow },
+    { id: "scorecard", label: "Scorecard", icon: BarChart3 },
+  ];
+
+  return (
+    <div className="mt-10 space-y-5 w-full">
+      <div className="flex flex-wrap gap-2 justify-center">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border transition-all duration-200 ${
+                activeTab === tab.id
+                  ? "bg-white border-[#2454E8] text-[#2454E8] shadow-md"
+                  : "bg-transparent border-[#CBBF9A]/80 text-[#111113]/70 hover:bg-white/60"
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="relative overflow-hidden rounded-[2rem] border border-[#CBBF9A]/80 bg-white/80 backdrop-blur-md shadow-2xl">
+        {/* Window chrome */}
+        <div className="h-10 bg-[#F3EBDD]/90 border-b border-[#CBBF9A]/60 px-4 flex items-center justify-between">
+          <div className="flex gap-1.5">
+            <span className="h-3 w-3 rounded-full bg-red-400" />
+            <span className="h-3 w-3 rounded-full bg-yellow-400" />
+            <span className="h-3 w-3 rounded-full bg-green-400" />
+          </div>
+          <p className="font-mono text-[10px] text-[#111113]/70 font-bold">creative-scaling-os // {activeTab}</p>
+          <div className="w-12" />
+        </div>
+
+        <div className="p-5 md:p-7 min-h-[300px] text-left">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22 }}
+              className="space-y-4"
+            >
+              {activeTab === "sprint" && (
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {[
+                    { label: "1. Planning / Research", badge: "ROADMAP", badgeCls: "bg-amber-100 text-amber-900", title: "Competitor Hook Research", sub: "Top 5 fashion hooks currently scaling." },
+                    { label: "2. Creative Sprints", badge: "IN PROGRESS", badgeCls: "bg-blue-100 text-blue-900", title: "10 Statics + 3 Video Sprint", sub: "Designing hook variations for offers." },
+                    { label: "3. Active Delivery", badge: "COMPLETED", badgeCls: "bg-emerald-100 text-emerald-900", title: "Sprint #04 Folder", sub: "Drive synced with platform notes." },
+                  ].map((item, i) => (
+                    <div key={i} className="space-y-2">
+                      <p className="font-mono text-[10px] font-bold text-[#667350] uppercase tracking-wide">{item.label}</p>
+                      <div className="rounded-2xl border border-[#CBBF9A]/60 bg-[#F8F1E6]/60 p-4 space-y-2">
+                        <span className={`text-[10px] px-2.5 py-0.5 rounded font-bold font-mono ${item.badgeCls}`}>{item.badge}</span>
+                        <p className="font-bold text-sm text-[#111113]">{item.title}</p>
+                        <p className="text-xs text-[#111113]/70">{item.sub}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {activeTab === "hooks" && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-[#CBBF9A]/70 text-[#111113]/70 font-bold">
+                        <th className="py-2.5 font-mono uppercase tracking-wider">Hook Code</th>
+                        <th className="py-2.5 font-mono uppercase tracking-wider">Hypothesis Angle</th>
+                        <th className="py-2.5 font-mono uppercase tracking-wider">Variant</th>
+                        <th className="py-2.5 font-mono uppercase tracking-wider">Target CPA</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#CBBF9A]/50">
+                      {[
+                        ["HK_01", "Split-screen AI hybrid garment fit", "Static 01", "$22.00"],
+                        ["HK_02", "UGC unboxing with honest hook voiceover", "Video 03", "$25.00"],
+                        ["HK_03", "Clean product walk with social proof", "Static 04", "$20.00"],
+                      ].map(([code, angle, variant, cpa]) => (
+                        <tr key={code}>
+                          <td className="py-3 font-mono font-bold text-[#2454E8]">{code}</td>
+                          <td className="py-3 font-semibold text-[#111113]">{angle}</td>
+                          <td className="py-3 font-mono text-[#111113]/80">{variant}</td>
+                          <td className="py-3 font-mono font-bold text-[#111113]">{cpa}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {activeTab === "drive" && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {[
+                    { folder: "Sprint_04_Statics/", detail: "10 PNG assets · usage notes included" },
+                    { folder: "Sprint_04_Videos/", detail: "3 MP4 assets · platform specs attached" },
+                    { folder: "Feedback_Tracker.sheet", detail: "Revision log · week 04 feedback" },
+                    { folder: "Performance_Review.doc", detail: "Signals + next sprint plan" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3 p-4 rounded-2xl border border-[#CBBF9A]/60 bg-[#F8F1E6]/60">
+                      <div className="p-2.5 bg-[#2454E8]/10 text-[#2454E8] rounded-xl">
+                        <FolderGit2 className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-[#111113]">{item.folder}</p>
+                        <p className="text-[11px] text-[#111113]/70 font-mono mt-0.5">{item.detail}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {activeTab === "scorecard" && (
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {[
+                    { id: "CS_01_A", status: "WINNER", cpa: "$18.50", action: "Double budget", cls: "bg-emerald-100 text-emerald-900", cpaColor: "text-emerald-600" },
+                    { id: "CS_03_C", status: "STABLE", cpa: "$24.10", action: "Maintain spend", cls: "bg-blue-100 text-blue-900", cpaColor: "text-[#111113]" },
+                    { id: "CS_04_B", status: "ITERATE", cpa: "$38.90", action: "Redesign visual", cls: "bg-rose-100 text-rose-900", cpaColor: "text-rose-600" },
+                  ].map((item) => (
+                    <div key={item.id} className="rounded-2xl border border-[#CBBF9A]/60 bg-[#F8F1E6]/60 p-4 space-y-2">
+                      <span className={`text-[10px] px-2.5 py-0.5 rounded font-bold font-mono ${item.cls}`}>{item.status}</span>
+                      <p className="font-bold text-xs text-[#111113]">{item.id}</p>
+                      <p className={`font-mono font-bold text-lg ${item.cpaColor}`}>{item.cpa} CPA</p>
+                      <p className="text-[11px] text-[#111113]/70">{item.action}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- SECTION 2: Clean, Distraction-Free Form Container ----
+function CleanBookingSection() {
   useEffect(() => {
-    const receiveTallyEvent = (event) => {
-      if (!event.data || typeof event.data !== "object") return;
-
-      const eventName =
-        event.data?.eventName ||
-        event.data?.event ||
-        event.data?.type ||
-        event.data?.action ||
-        "";
-
-      if (
-        eventName === "Tally.FormSubmitted" ||
-        eventName === "Tally.FormCompleted" ||
-        eventName === "Tally.Form.PageSubmitted" ||
-        eventName === "FORM_SUBMITTED" ||
-        eventName === "Tally.submitted" ||
-        (event.data?.isCompleted === true)
-      ) {
-        if (tallyRef.current) tallyRef.current.style.display = "none";
-        localStorage.setItem("creative-scaling-tally-complete", "true");
-        setSubmitted(true);
-        setShowManualFallback(false);
-        if (fallbackTimerRef.current) clearTimeout(fallbackTimerRef.current);
+    const loadTally = () => {
+      if (typeof window !== "undefined" && window.Tally) {
+        window.Tally.loadEmbeds();
+      } else {
+        document.querySelectorAll("iframe[data-tally-src]:not([src])").forEach((el) => {
+          el.src = el.dataset.tallySrc;
+        });
       }
     };
 
-    const receiveCalendarEvent = (event) => {
-      if (!event.data || typeof event.data !== "object") return;
-      if (
-        event.data?.eventType === "APPOINTMENT_SCHEDULED" ||
-        event.data?.type === "APPOINTMENT_SCHEDULED" ||
-        event.data?.status === "completed" ||
-        event.data?.event === "booking_completed" ||
-        event.data?.event === "APPOINTMENT_SCHEDULED"
-      ) {
-        localStorage.setItem("creative-scaling-booked", "true");
-        setBooked(true);
-      }
-    };
-
-    window.addEventListener("message", receiveTallyEvent);
-    window.addEventListener("message", receiveCalendarEvent);
-    return () => {
-      window.removeEventListener("message", receiveTallyEvent);
-      window.removeEventListener("message", receiveCalendarEvent);
-    };
+    if (typeof window !== "undefined" && window.Tally) {
+      loadTally();
+    } else {
+      const script = document.createElement("script");
+      script.src = "https://tally.so/widgets/embed.js";
+      script.async = true;
+      script.onload = loadTally;
+      script.onerror = loadTally;
+      document.body.appendChild(script);
+    }
   }, []);
 
-  useEffect(() => {
-    if (!submitted) {
-      fallbackTimerRef.current = setTimeout(() => {
-        setShowManualFallback(true);
-      }, 2000);
-    }
-    return () => {
-      if (fallbackTimerRef.current) clearTimeout(fallbackTimerRef.current);
-    };
-  }, [submitted]);
-
-  const confirmBooking = () => {
-    localStorage.setItem("creative-scaling-booked", "true");
-    setBooked(true);
-  };
-
-  const manualSubmit = () => {
-    if (tallyRef.current) tallyRef.current.style.display = "none";
-    localStorage.setItem("creative-scaling-tally-complete", "true");
-    setSubmitted(true);
-    setShowManualFallback(false);
-  };
-
   return (
-    <PaperCard className="overflow-hidden p-0">
-      <div className="border-b border-[#151515]/15 px-5 py-4">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-extrabold tracking-tight">Strategy Review Application</p>
-            <p className="text-xs text-[#151515]/55">
-              {booked ? "You booked a call — thank you." : submitted ? "Book your slot below" : "Apply first. Booking unlocks after Tally submits."}
-            </p>
-          </div>
-          <span className="font-mono text-xs font-bold text-[#2454E8]">
-            {booked ? "BOOKED" : submitted ? "READY TO BOOK" : ""}
-          </span>
-        </div>
-      </div>
-
-      <AnimatePresence mode="wait">
-        {booked ? (
-          <motion.div
-            key="thankyou"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.35 }}
-            className="p-5 text-center"
-          >
-            <div className="mx-auto mb-6 grid h-20 w-20 place-items-center rounded-full bg-[#2454E8]/10">
-              <CheckCircle2 className="h-10 w-10 text-[#2454E8]" />
-            </div>
-            <p className="font-serif text-4xl font-semibold leading-none text-[#151515]">I booked a call.</p>
-            <p className="mt-4 text-sm leading-7 text-[#151515]/65">
-              Thank you — your Strategy Review is confirmed and your booking is complete.
-            </p>
-            <p className="mt-6 font-serif text-5xl font-bold text-[#D85C9D]">See you there.</p>
-          </motion.div>
-        ) : !submitted ? (
-          <motion.div
-            key="tally"
-            ref={tallyRef}
-            initial={{ opacity: 0, x: 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -24 }}
-            transition={{ duration: 0.28 }}
-          >
-            <iframe
-              src={`https://tally.so/embed/${tallyFormId}?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1`}
-              title="Creative Scaling Strategy Review application"
-              className="min-h-[590px] w-full border-0"
-            />
-            <AnimatePresence>
-              {showManualFallback && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  className="p-5"
-                >
-                  <p className="mb-3 text-sm font-semibold text-[#151515]/65">
-                    Already submitted? If the calendar did not appear, click below.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={manualSubmit}
-                    className="w-full rounded-2xl bg-[#2454E8] px-5 py-4 text-sm font-bold text-white shadow-lg transition hover:-translate-y-1"
-                  >
-                    I submitted the form — show booking calendar
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="calendar"
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -18 }}
-            transition={{ duration: 0.35 }}
-            className="p-5"
-          >
-            <div className="mb-4 rounded-2xl border border-[#2454E8]/25 bg-[#2454E8]/10 p-4">
-              <p className="font-serif text-3xl leading-none text-[#151515]">Application received. Book the Strategy Review.</p>
-              <p className="mt-3 text-sm leading-6 text-[#151515]/65">
-                Your answers are saved for this flow. Pick a time below and come ready to review your creative bottleneck.
-              </p>
-            </div>
-            <div className="overflow-hidden rounded-[1.4rem] border border-[#151515]/15 bg-[#F3EBDD]">
-              <iframe
-                src={calendarUrl}
-                title="Book a Strategy Review"
-                style={{ border: 0 }}
-                width="100%"
-                height="620"
-                frameBorder="0"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={confirmBooking}
-              className="mt-4 w-full rounded-2xl bg-[#2454E8] px-5 py-4 text-sm font-bold text-white shadow-lg transition hover:-translate-y-1"
-            >
-              Done - I booked my call
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </PaperCard>
-  );
-}
-
-function ProcessCarousel({ steps }) {
-  const [active, setActive] = useState(0);
-  const scrollRef = useRef(null);
-  const cardRef = useRef(null);
-  const isDragging = useRef(false);
-  const dragStart = useRef({ x: 0, scrollLeft: 0 });
-  const { scrollYProgress } = useScroll();
-  const cardY = useTransform(scrollYProgress, [0, 1], [0, -12]);
-
-  const scrollTo = (index) => {
-    if (scrollRef.current && cardRef.current) {
-      const cardWidth = cardRef.current.offsetWidth + 12;
-      scrollRef.current.scrollTo({ left: index * cardWidth, behavior: "smooth" });
-      setActive(index);
-    }
-  };
-
-  const handleScroll = () => {
-    if (scrollRef.current && cardRef.current) {
-      const cardWidth = cardRef.current.offsetWidth + 12;
-      const index = Math.round(scrollRef.current.scrollLeft / cardWidth);
-      setActive(Math.min(index, steps.length - 1));
-    }
-  };
-
-  const handleMouseDown = (e) => {
-    isDragging.current = true;
-    dragStart.current = { x: e.pageX - scrollRef.current.offsetLeft, scrollLeft: scrollRef.current.scrollLeft };
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging.current || !scrollRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - dragStart.current.x) * 1.2;
-    scrollRef.current.scrollLeft = dragStart.current.scrollLeft - walk;
-  };
-
-  const handleMouseUp = () => { isDragging.current = false; };
-
-  const handleWheel = (e) => {
-    if (!scrollRef.current) return;
-    const el = scrollRef.current;
-    // Only treat primarily-vertical wheel gestures
-    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
-
-    // Detect whether the carousel can scroll horizontally
-    const canScrollLeft = el.scrollLeft > 0;
-    const canScrollRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
-
-    // If the user holds Shift, always convert vertical -> horizontal.
-    // Otherwise only intercept when horizontal scrolling is possible.
-    if (!e.shiftKey && !canScrollLeft && !canScrollRight) {
-      // let the page scroll normally when the carousel is already at its horizontal edges
-      return;
-    }
-
-    e.preventDefault();
-    const multiplier = 1.0;
-    el.scrollLeft += e.deltaY * multiplier;
-  };
-
-  const prev = () => {
-    if (!scrollRef.current || !cardRef.current) return;
-    const cardWidth = cardRef.current.offsetWidth + 12;
-    scrollRef.current.scrollBy({ left: -cardWidth, behavior: "smooth" });
-  };
-
-  const next = () => {
-    if (!scrollRef.current || !cardRef.current) return;
-    const cardWidth = cardRef.current.offsetWidth + 12;
-    scrollRef.current.scrollBy({ left: cardWidth, behavior: "smooth" });
-  };
-
-  return (
-    <motion.div style={{ y: cardY }}>
-      <div className="relative">
-        <button
-          aria-label="Previous"
-          onClick={prev}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/80 border border-[#151515]/10 shadow-sm flex items-center justify-center hover:bg-white"
-        >
-          ‹
-        </button>
-        <button
-          aria-label="Next"
-          onClick={next}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/80 border border-[#151515]/10 shadow-sm flex items-center justify-center hover:bg-white"
-        >
-          ›
-        </button>
-        <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        onWheel={handleWheel}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        className="flex cursor-grab gap-3 overflow-x-auto scrollbar-hide select-none snap-x snap-mandatory pb-4 active:cursor-grabbing"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {steps.map(([number, title, text]) => (
-          <motion.div
-            key={number}
-            ref={cardRef}
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.5, ease: smoothSpring }}
-            whileHover={{ scale: 1.02 }}
-            className="min-w-[280px] snap-start md:min-w-[320px]"
-          >
-            <PaperCard className="h-full p-4 md:p-5">
-              <span className="font-mono text-xs text-[#151515]/35">{number}</span>
-              <h3 className="mt-3 font-serif text-3xl leading-none">{title}</h3>
-              <p className="mt-3 text-sm leading-6 text-[#151515]/65">{text}</p>
-            </PaperCard>
-          </motion.div>
-        ))}
-        </div>
-      </div>
-      <div className="mt-4 flex items-center justify-center gap-2">
-        {steps.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => scrollTo(index)}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              index === active ? "w-8 bg-[#2454E8]" : "w-2 bg-[#151515]/20"
-            }`}
+    <div className="w-full">
+      <div className="rounded-[2.25rem] border border-[#CBBF9A]/70 bg-[#F8F1E6]/80 backdrop-blur-md p-3 md:p-6 shadow-2xl transition-all duration-300">
+        <div className="tally-wrapper w-full rounded-2xl">
+          <iframe
+            data-tally-src={`https://tally.so/embed/${tallyFormId}?alignLeft=1&hideTitle=1&dynamicHeight=1`}
+            src={`https://tally.so/embed/${tallyFormId}?alignLeft=1&hideTitle=1&dynamicHeight=1`}
+            width="100%"
+            height="540"
+            frameBorder="0"
+            marginHeight="0"
+            marginWidth="0"
+            title="Creative Scaling Strategy Review Application"
+            loading="eager"
+            className="w-full border-0 block"
           />
-        ))}
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
+// ---- Jimmy AI Chatbot ----
 function JimmyChat() {
-  const CHAT_HISTORY_KEY = "jimmy-chat-history";
-  const CHAT_HISTORY_VERSION_KEY = "jimmy-chat-history-version";
-  const CHAT_HISTORY_VERSION = "2";
-  const INITIAL_MESSAGE = "I help with fit, packages, process, and next steps. Keep questions short and on-topic.";
+  const HISTORY_KEY = "jimmy-chat-history";
+  const VERSION_KEY = "jimmy-chat-version";
+  const VERSION = "7";
+  const INIT_MSG = "I help with fit, packages, onboarding, and process. What would you like to know about Creative Scaling?";
+
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const { scrollYProgress } = useScroll();
-  const buttonX = useTransform(scrollYProgress, [0, 0.5], [0, 12]);
   const [messages, setMessages] = useState(() => {
     try {
-      if (localStorage.getItem(CHAT_HISTORY_VERSION_KEY) !== CHAT_HISTORY_VERSION) {
-        localStorage.removeItem(CHAT_HISTORY_KEY);
-        localStorage.setItem(CHAT_HISTORY_VERSION_KEY, CHAT_HISTORY_VERSION);
-        return [{ role: "assistant", content: INITIAL_MESSAGE }];
+      if (localStorage.getItem(VERSION_KEY) !== VERSION) {
+        localStorage.removeItem(HISTORY_KEY);
+        localStorage.setItem(VERSION_KEY, VERSION);
+        return [{ role: "assistant", content: INIT_MSG }];
       }
-      return JSON.parse(localStorage.getItem(CHAT_HISTORY_KEY)) || [{ role: "assistant", content: INITIAL_MESSAGE }];
+      return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [{ role: "assistant", content: INIT_MSG }];
     } catch {
-      return [{ role: "assistant", content: INITIAL_MESSAGE }];
+      return [{ role: "assistant", content: INIT_MSG }];
     }
   });
-  const messageListRef = useRef(null);
+
+  const listRef = useRef(null);
   const sendingRef = useRef(false);
   const inputRef = useRef("");
-  const requestBudgetRef = useRef({ count: 0, resetAt: Date.now() });
+  const budgetRef = useRef({ count: 0, resetAt: Date.now() });
 
   useEffect(() => { inputRef.current = input; }, [input]);
-
   useEffect(() => {
-    localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(messages.slice(-16)));
-    localStorage.setItem(CHAT_HISTORY_VERSION_KEY, CHAT_HISTORY_VERSION);
-    const element = messageListRef.current;
-    if (!element) return;
-    requestAnimationFrame(() => {
-      element.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
-    });
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(messages.slice(-16)));
+    localStorage.setItem(VERSION_KEY, VERSION);
+    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  useEffect(() => {
-    const openChat = () => setOpen(true);
-    window.addEventListener("open-jimmy", openChat);
-    return () => window.removeEventListener("open-jimmy", openChat);
-  }, []);
-
   const newChat = () => {
-    setMessages([{ role: "assistant", content: INITIAL_MESSAGE }]);
-    localStorage.removeItem(CHAT_HISTORY_KEY);
-    localStorage.setItem(CHAT_HISTORY_VERSION_KEY, CHAT_HISTORY_VERSION);
-    requestBudgetRef.current = { count: 0, resetAt: Date.now() };
+    setMessages([{ role: "assistant", content: INIT_MSG }]);
+    localStorage.removeItem(HISTORY_KEY);
+    budgetRef.current = { count: 0, resetAt: Date.now() };
   };
 
-  const MAX_INPUT_LENGTH = 220;
-  const MAX_CHAT_TURNS = 8;
-  const MAX_REQUESTS_PER_MINUTE = 6;
-  const BLOCKED_REQUEST_PATTERNS = [
-    /ignore previous instructions/i,
-    /system prompt/i,
-    /jailbreak/i,
-    /developer mode/i,
-    /bypass|unlock|crack|hack|exploit|scam|steal|phish|malware|ddos/i,
-    /prompt injection/i,
-    /reveal your (instructions|system|prompt)/i,
-  ];
-
-  const checkRequestBudget = () => {
+  const checkBudget = () => {
     const now = Date.now();
-    const budget = requestBudgetRef.current;
-    if (now - budget.resetAt > 60000) {
-      budget.count = 0;
-      budget.resetAt = now;
-    }
-    if (budget.count >= MAX_REQUESTS_PER_MINUTE) return false;
-    budget.count += 1;
+    const b = budgetRef.current;
+    if (now - b.resetAt > 60000) { b.count = 0; b.resetAt = now; }
+    if (b.count >= 6) return false;
+    b.count++;
     return true;
   };
 
-  const sanitizeInput = (rawText) => {
-    const text = rawText.trim();
-    if (!text) return { ok: false, message: "Please ask a real question about fit, pricing, or process." };
-    if (text.length > MAX_INPUT_LENGTH) return { ok: false, message: "Please keep it short and focused." };
-    const lower = text.toLowerCase();
-    if (BLOCKED_REQUEST_PATTERNS.some((pattern) => pattern.test(lower))) {
-      return { ok: false, message: "I can help with Creative Scaling, not jailbreaks, hacking, scams, or bypassing limits." };
-    }
-    return { ok: true, text };
-  };
+  const blocked = [
+    /ignore previous instructions/i, /system prompt/i, /jailbreak/i,
+    /developer mode/i, /bypass|unlock|crack|hack|exploit|scam|phish|malware/i,
+    /prompt injection/i, /reveal your (instructions|system|prompt)/i,
+  ];
 
-  const formatMessageContent = (content) => {
-    const renderInline = (text) => {
-      return text.split(/(\*\*[^*]+\*\*)/g).map((segment, index) => {
-        const match = segment.match(/^\*\*([^*]+)\*\*$/);
-        if (match) {
-          return (
-            <strong key={index} className="font-semibold text-[#151515]">
-              {match[1]}
-            </strong>
-          );
-        }
-        return segment;
-      });
-    };
-
-    const lines = content.split(/\r?\n/);
-    const nodes = [];
-    let currentList = [];
-
-    const flushList = () => {
-      if (!currentList.length) return;
-      nodes.push(
-        <ul key={`list-${nodes.length}`} className="mt-2 ml-4 list-disc space-y-1 text-sm text-[#151515]/75">
-          {currentList.map((item, itemIndex) => (
-            <li key={itemIndex}>{renderInline(item)}</li>
-          ))}
-        </ul>
-      );
-      currentList = [];
-    };
-
-    lines.forEach((line, index) => {
-      if (line.trim().startsWith("- ")) {
-        currentList.push(line.trim().slice(2));
-      } else {
-        flushList();
-        nodes.push(
-          <p key={`line-${index}`} className="mt-2 text-sm leading-6 text-[#151515]/75">
-            {renderInline(line)}
-          </p>
-        );
-      }
-    });
-
-    flushList();
-    return nodes;
-  };
-
-  const sendMessage = async (suggestedText) => {
-    const text = (suggestedText || inputRef.current).trim();
+  const send = async (suggested) => {
+    const text = (suggested || inputRef.current).trim();
     if (!text || sendingRef.current) return;
-
-    const sanitized = sanitizeInput(text);
-    if (!sanitized.ok) {
-      setMessages((prev) => [...prev, { role: "assistant", content: sanitized.message }]);
+    if (text.length > 220 || blocked.some(p => p.test(text.toLowerCase()))) {
+      setMessages(p => [...p, { role: "assistant", content: "I can only help with questions about Creative Scaling." }]);
+      setInput("");
+      return;
+    }
+    if (!checkBudget()) {
+      setMessages(p => [...p, { role: "assistant", content: "Please wait a moment before asking another question." }]);
       setInput("");
       return;
     }
 
-    if (!checkRequestBudget()) {
-      setMessages((prev) => [...prev, { role: "assistant", content: "I am in strict mode right now. Please wait a moment before sending another question." }]);
-      setInput("");
-      return;
-    }
-
-    const userMessage = { role: "user", content: sanitized.text };
-    const nextMessages = [...messages, userMessage];
-    if (nextMessages.filter((message) => message.role === "user").length > MAX_CHAT_TURNS) {
-      setMessages([{ role: "assistant", content: "This conversation is getting long, so I am starting a fresh thread with the next question." }]);
-      localStorage.removeItem(CHAT_HISTORY_KEY);
-      requestBudgetRef.current = { count: 0, resetAt: Date.now() };
+    const userMsg = { role: "user", content: text };
+    const next = [...messages, userMsg];
+    if (next.filter(m => m.role === "user").length > 8) {
+      setMessages([{ role: "assistant", content: "Starting a fresh thread." }]);
+      localStorage.removeItem(HISTORY_KEY);
+      budgetRef.current = { count: 0, resetAt: Date.now() };
       setInput("");
       return;
     }
@@ -844,66 +664,51 @@ function JimmyChat() {
     sendingRef.current = true;
     setLoading(true);
     setInput("");
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages(p => [...p, userMsg]);
 
     try {
       let memory = {};
-      try {
-        const raw = localStorage.getItem("creative-scaling-profile");
-        if (raw) memory = JSON.parse(raw);
-      } catch (_) {
-        memory = {};
-      }
-
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 12000);
-
-      const response = await fetch("/api/jimmy", {
+      try { const r = localStorage.getItem("creative-scaling-profile"); if (r) memory = JSON.parse(r); } catch (_) {}
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 12000);
+      const res = await fetch("/api/jimmy", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages, memory }),
-        signal: controller.signal,
+        body: JSON.stringify({ messages: next, memory }),
+        signal: ctrl.signal,
       });
-      clearTimeout(timer);
-
-      const contentType = response.headers.get("content-type") || "";
-      if (!response.ok) {
-        if (contentType.includes("application/json")) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData?.error || "I need a moment before answering. Please send that again.");
-        }
-        await response.text().catch(() => "");
-        throw new Error("I need a moment before answering. Please send that again.");
-      }
-
-      if (!contentType.includes("application/json")) {
-        throw new Error("I need one more clear question about fit, pricing, or process.");
-      }
-
-      const data = await response.json();
-      setMessages((prev) => [...prev, { role: "assistant", content: data.reply || "I need one more clear question about fit, pricing, or process." }]);
-    } catch (error) {
-      if (error.name === "AbortError") {
-        setMessages((prev) => [...prev, { role: "assistant", content: "That took too long. Please send the question again." }]);
-      } else {
-        setMessages((prev) => [...prev, { role: "assistant", content: error.message || "Something went wrong. Try again." }]);
-      }
+      clearTimeout(t);
+      const data = await res.json();
+      setMessages(p => [...p, { role: "assistant", content: data.reply || "Can you rephrase your question?" }]);
+    } catch {
+      setMessages(p => [...p, { role: "assistant", content: "I had a connection issue. What is your Shopify brand's monthly revenue?" }]);
     } finally {
       setLoading(false);
       sendingRef.current = false;
     }
   };
 
+  const renderContent = (content) => {
+    return content.split(/\r?\n/).map((line, i) => (
+      <p key={i} className="text-xs leading-5 text-[#111113] mt-1.5 first:mt-0 font-medium">{line}</p>
+    ));
+  };
+
   return (
     <>
       <motion.button
         type="button"
+        whileHover={{ scale: 1.03, y: -2 }}
+        whileTap={{ scale: 0.97 }}
         onClick={() => setOpen(true)}
-        style={{ x: buttonX }}
-        className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-2xl bg-[#F8F1E6] px-5 py-3 text-sm font-bold text-[#151515] shadow-[0_18px_45px_rgba(21,21,21,0.18)] transition-colors hover:-translate-y-1"
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-full bg-[#111113] text-white px-5 py-3 text-xs font-bold shadow-[0_12px_30px_rgba(17,17,19,0.35)] border border-white/15 backdrop-blur-md transition-all hover:bg-[#1b1b1e] hover:shadow-[0_16px_36px_rgba(36,84,232,0.3)] group"
       >
-        <MessageCircle className="h-4 w-4 text-[#2454E8]" />
-        Ask Jimmy
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2454E8] opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2454E8]"></span>
+        </span>
+        <MessageCircle className="h-4 w-4 text-[#2454E8] transition-transform group-hover:scale-110" />
+        <span className="tracking-wide">Ask Jimmy</span>
       </motion.button>
 
       <AnimatePresence>
@@ -912,96 +717,91 @@ function JimmyChat() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] bg-[#151515]/10 px-4 py-5"
+            className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm flex items-end justify-end p-4 md:p-6"
             onClick={() => setOpen(false)}
           >
             <motion.div
               initial={{ opacity: 0, y: 30, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 30, scale: 0.96 }}
-              transition={{ duration: 0.28 }}
-              className="mx-auto flex h-full max-h-[760px] w-full max-w-[460px] flex-col overflow-hidden rounded-[2rem] bg-[#F8F1E6]/95 shadow-2xl md:ml-auto md:mr-0"
-              onClick={(event) => event.stopPropagation()}
+              transition={{ duration: 0.25 }}
+              className="w-full max-w-[420px] max-h-[620px] h-[78vh] flex flex-col overflow-hidden rounded-[2.5rem] bg-white border border-[#CBBF9A] shadow-2xl"
+              onClick={e => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between px-5 py-4">
-                <div>
-                  <p className="text-sm font-extrabold tracking-tight">Jimmy AI</p>
-                  <p className="text-xs text-[#151515]/55">Creative Scaling fit assistant</p>
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-[#CBBF9A]/60 px-6 py-4 bg-[#F8F1E6]">
+                <div className="text-left">
+                  <p className="text-sm font-extrabold text-[#111113] tracking-tight">Ask Jimmy</p>
+                  <p className="text-[10px] text-[#667350] font-mono uppercase tracking-wider font-bold">Fit Assistant</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button type="button" onClick={newChat} className="grid h-10 w-10 place-items-center rounded-2xl bg-white/60 transition hover:bg-white" title="New conversation">
-                    <Plus className="h-5 w-5" />
+                <div className="flex gap-2">
+                  <button
+                    onClick={newChat}
+                    title="New Chat"
+                    className="grid h-8 w-8 place-items-center rounded-full bg-[#F3EBDD] hover:bg-[#CBBF9A]/50 transition text-[#111113]"
+                  >
+                    <Plus className="h-4 w-4" />
                   </button>
-                  <button type="button" onClick={() => setOpen(false)} className="grid h-10 w-10 place-items-center rounded-2xl bg-white/60">
-                    <X className="h-5 w-5" />
+                  <button
+                    onClick={() => setOpen(false)}
+                    title="Close"
+                    className="grid h-8 w-8 place-items-center rounded-full bg-[#F3EBDD] hover:bg-[#CBBF9A]/50 transition text-[#111113]"
+                  >
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               </div>
 
-              <div ref={messageListRef} className="flex-1 space-y-3 overflow-y-auto p-5">
-                {messages.map((message, index) => (
+              {/* Messages */}
+              <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-hide bg-white">
+                {messages.map((m, i) => (
                   <div
-                    key={`${message.role}-${index}`}
-                    className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-6 ${
-                      message.role === "user"
-                        ? "ml-auto bg-[#2454E8] text-white"
-                        : "bg-[#F3EBDD] text-[#151515]/75"
+                    key={i}
+                    className={`max-w-[88%] rounded-2xl px-4 py-3 text-left ${
+                      m.role === "user"
+                        ? "ml-auto bg-[#2454E8] text-white text-xs font-semibold"
+                        : "bg-[#F8F1E6] border border-[#CBBF9A]/60 text-[#111113]"
                     }`}
                   >
-                    {message.role === "assistant" ? formatMessageContent(message.content) : message.content}
+                    {m.role === "assistant" ? renderContent(m.content) : <p className="text-xs">{m.content}</p>}
                   </div>
                 ))}
-                {!loading && messages.length > 0 && messages[messages.length - 1].role === "assistant" && (
-                  <div className="flex items-center gap-2 pt-1 text-[11px] font-bold text-[#151515]/35">
-                    <span className="h-1 w-1 rounded-full bg-[#151515]/30" />
-                    Type your reply...
-                  </div>
-                )}
                 {loading && (
-                  <div className="inline-flex items-center gap-3 rounded-2xl bg-[#F3EBDD] px-4 py-3 text-sm font-bold text-[#151515]/75">
-                    <span className="loading-dots">
-                      <span />
-                      <span />
-                      <span />
-                    </span>
-                    replying...
+                  <div className="inline-flex items-center gap-3 rounded-2xl bg-[#F8F1E6] border border-[#CBBF9A]/60 px-4 py-3">
+                    <span className="loading-dots"><span /><span /><span /></span>
+                    <span className="text-xs text-[#111113]/70 font-semibold">Jimmy is typing...</span>
                   </div>
                 )}
               </div>
 
-              <div className="p-4 pt-0">
-                <div className="flex flex-wrap gap-2 pb-3">
-                  {["Do you support paid and organic?", "Which package is right?", "What happens after I book?"].map((text) => (
+              {/* Input area */}
+              <div className="p-4 border-t border-[#CBBF9A]/60 bg-white space-y-3">
+                <div className="flex flex-wrap gap-1.5">
+                  {["Which package fits my brand?", "What happens after I book?", "Do you handle paid and organic?"].map(q => (
                     <button
-                      key={text}
-                      type="button"
-                      onClick={() => sendMessage(text)}
-                      className="rounded-full border border-[#151515]/15 bg-white/80 px-3.5 py-2 text-[11px] font-bold text-[#151515]/70 shadow-sm transition hover:bg-[#2454E8] hover:text-white hover:border-[#2454E8]"
+                      key={q}
+                      onClick={() => send(q)}
+                      className="rounded-full border border-[#CBBF9A]/70 bg-[#F8F1E6] px-3 py-1.5 text-[10px] font-bold text-[#111113]/80 transition hover:bg-[#2454E8] hover:text-white"
                     >
-                      {text}
+                      {q}
                     </button>
                   ))}
                 </div>
                 <div className="flex gap-2">
                   <input
                     value={input}
-                    onChange={(event) => setInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") sendMessage();
-                    }}
-                    placeholder="Ask about fit, pricing, process..."
-                    className="min-h-12 flex-1 rounded-full border border-[#151515]/15 bg-white/45 px-4 text-sm font-bold outline-none focus:border-[#2454E8]"
+                    onChange={e => setInput(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && send()}
+                    placeholder="Ask about sprints, packages, fit..."
+                    className="flex-1 rounded-full border border-[#CBBF9A] bg-[#F8F1E6] px-4 text-xs font-medium outline-none focus:border-[#2454E8] min-h-10 text-[#111113] placeholder-[#111113]/40"
                   />
                   <button
-                    type="button"
-                    onClick={() => sendMessage()}
+                    onClick={() => send()}
                     disabled={!input.trim() || loading}
                     className="send-btn"
-                    aria-label="Send message"
+                    aria-label="Send"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <Send className="h-4 w-4 text-white" />
                   </button>
                 </div>
               </div>
@@ -1013,187 +813,171 @@ function JimmyChat() {
   );
 }
 
-export default function OmarAISystemsLandingPage() {
+// ---- Main Landing Page Component ----
+export default function CreativeScalingLandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("");
   const { scrollYProgress } = useScroll();
 
   useEffect(() => {
-    const sectionIds = navLinks.map((link) => link.href.replace("#", ""));
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 42);
-      const scrollY = window.scrollY + 140;
-      for (let i = sectionIds.length - 1; i >= 0; i--) {
-        const el = document.getElementById(sectionIds[i]);
-        if (el && el.offsetTop <= scrollY) {
-          setActiveSection("#" + sectionIds[i]);
-          return;
-        }
+      setIsScrolled(window.scrollY > 40);
+      const scrollY = window.scrollY + 150;
+      const ids = ["services", "interactive-plan", "process", "case-study", "pricing", "faq", "apply"];
+      for (let i = ids.length - 1; i >= 0; i--) {
+        const el = document.getElementById(ids[i]);
+        if (el && el.offsetTop <= scrollY) { setActiveSection("#" + ids[i]); return; }
       }
       setActiveSection("");
     };
-    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
-    const playClick = (event) => {
-      if (!event.target.closest("button, a")) return;
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
-      const audio = new AudioContext();
-      const oscillator = audio.createOscillator();
-      const gain = audio.createGain();
-      oscillator.frequency.value = 420;
-      gain.gain.setValueAtTime(0.018, audio.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.045);
-      oscillator.connect(gain).connect(audio.destination);
-      oscillator.start();
-      oscillator.stop(audio.currentTime + 0.05);
+    const handleHashScroll = () => {
+      const hash = window.location.hash;
+      if (hash) {
+        const scrollToTarget = () => {
+          const el = document.querySelector(hash);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        };
+        scrollToTarget();
+        const t1 = setTimeout(scrollToTarget, 100);
+        const t2 = setTimeout(scrollToTarget, 300);
+        const t3 = setTimeout(scrollToTarget, 600);
+        return () => {
+          clearTimeout(t1);
+          clearTimeout(t2);
+          clearTimeout(t3);
+        };
+      }
     };
-    document.addEventListener("click", playClick);
-    return () => document.removeEventListener("click", playClick);
+
+    handleHashScroll();
+    window.addEventListener("hashchange", handleHashScroll);
   }, []);
 
-  const scrollToSection = (href) => {
-    document.querySelector(href)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const scrollTo = (href) => {
+    if (href && href.startsWith("#")) {
+      const el = document.querySelector(href);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        try { window.history.pushState(null, "", href); } catch (_) {}
+      }
+    }
     setMenuOpen(false);
   };
 
-  const packageFit = useMemo(() => ["$30k+ / month", "$100k+ / month", "$250k+ / month", "$500k+ / month"], []);
-  const typedWords = useMemo(() => ["Shopify", "DTC", "performance", "growth"], []);
-  const [typedHeadline, setTypedHeadline] = useState("");
-
-  useEffect(() => {
-    let wordIndex = 0;
-    let letterIndex = 0;
-    let deleting = false;
-    let timeoutId;
-
-    const tick = () => {
-      const currentWord = typedWords[wordIndex];
-      if (!deleting) {
-        letterIndex += 1;
-        setTypedHeadline(currentWord.slice(0, letterIndex));
-        if (letterIndex === currentWord.length) {
-          deleting = true;
-          timeoutId = window.setTimeout(tick, 1500);
-          return;
-        }
-      } else {
-        letterIndex -= 1;
-        setTypedHeadline(currentWord.slice(0, letterIndex));
-        if (letterIndex === 0) {
-          deleting = false;
-          wordIndex = (wordIndex + 1) % typedWords.length;
-          timeoutId = window.setTimeout(tick, 600);
-          return;
-        }
-      }
-      timeoutId = window.setTimeout(tick, deleting ? 80 : 120);
-    };
-
-    timeoutId = window.setTimeout(tick, 600);
-    return () => window.clearTimeout(timeoutId);
-  }, []);
-
   return (
-    <main className="min-h-screen overflow-hidden bg-[#F3EBDD] text-[#151515] selection:bg-[#D85C9D]/30">
-      <style>{`
-        .font-serif { font-family: 'Space Grotesk', Inter, system-ui, sans-serif; }
-        .font-mono { font-family: 'Space Mono', monospace; }
-        main { font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif; }
-        .paper-grain:before {
-          content: "";
-          position: fixed;
-          inset: 0;
-          pointer-events: none;
-          opacity: .16;
-          mix-blend-mode: multiply;
-          background-image: radial-gradient(#151515 0.7px, transparent 0.7px);
-          background-size: 5px 5px;
-          z-index: 60;
-        }
-        .torn-edge {
-          clip-path: polygon(0 4%, 6% 0, 16% 3%, 28% 0, 42% 4%, 55% 1%, 67% 4%, 78% 0, 91% 3%, 100% 0, 98% 100%, 88% 96%, 74% 99%, 62% 96%, 48% 100%, 33% 97%, 20% 100%, 8% 96%, 0 100%);
-        }
-        .send-btn {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          background: #000;
-          border: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: background 0.15s ease;
-        }
-        .send-btn:hover:not(:disabled) {
-          background: #333;
-        }
-        .send-btn:disabled {
-          background: #d9d9d9;
-          cursor: not-allowed;
-        }
-      `}</style>
-      <div className="paper-grain" />
+    <main className="min-h-screen relative overflow-x-hidden text-[#111113] transition-colors duration-300 bg-[#F3EBDD]">
 
-      <div className="pointer-events-none fixed inset-0 z-0 opacity-80">
-        <div className="ambient-drift ambient-center absolute -top-44 h-[520px] w-[520px] rounded-full bg-[#D85C9D]/10 blur-3xl" />
-        <div className="ambient-drift ambient-drift-slow absolute right-[-220px] top-40 h-[520px] w-[520px] rounded-full bg-[#2454E8]/10 blur-3xl" />
-        <div className="ambient-drift ambient-drift-soft absolute bottom-[-220px] left-[-160px] h-[520px] w-[520px] rounded-full bg-[#CBBF9A]/35 blur-3xl" />
+      {/* Solid Warm Beige Background with Floating Ambient Blurred Logos (50%-70% blur) across Section 1 & Section 2 */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="absolute -top-32 left-[15%] h-[500px] w-[500px] rounded-full bg-[#d85c9d]/12 blur-3xl ambient-drift" />
+        <div className="absolute top-[25%] right-[-10%] h-[600px] w-[600px] rounded-full bg-[#2454E8]/10 blur-3xl ambient-drift ambient-drift-slow" />
+        <div className="absolute bottom-[10%] left-[-10%] h-[500px] w-[500px] rounded-full bg-[#CBBF9A]/30 blur-3xl" />
       </div>
 
-      <motion.div className="fixed left-0 top-0 z-[80] h-[3px] w-full origin-left bg-[#2454E8]" style={{ scaleX: scrollYProgress }} />
-      <header className={`fixed left-0 top-0 z-50 w-full px-4 pointer-events-none transition-all duration-700 md:px-8 ${isScrolled ? "py-3" : "py-6"}`}>
-        <div className={`nav-glass pointer-events-auto mx-auto flex max-w-7xl items-center justify-between rounded-[2rem] px-4 py-3 transition-all duration-700 md:px-8 ${isScrolled ? "border border-[#151515]/10 bg-[#F8F1E6]/82 shadow-[0_32px_64px_-18px_rgba(21,21,21,0.25)] backdrop-blur-2xl" : "border border-transparent bg-transparent"}`}>
-          <button onClick={() => scrollToSection("#top")} className="group flex items-center gap-3 text-left">
-            <div className="relative h-11 w-11 overflow-hidden rounded-full border border-[#151515]/15 bg-[#F8F1E6] shadow-sm transition group-hover:border-[#2454E8]/45">
-              <img src={brandLogo} alt="Creative Scaling" className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 object-contain" />
+      {/* Ambient Floating Blurred Logos Overlay */}
+      <AmbientBlurredLogosBackground />
+
+      {/* Progress bar */}
+      <motion.div
+        className="fixed left-0 top-0 z-[80] h-[3px] w-full origin-left bg-[#2454E8]"
+        style={{ scaleX: scrollYProgress }}
+      />
+
+      {/* ── HEADER ── */}
+      <header className={`fixed left-0 top-0 z-50 w-full px-4 md:px-6 transition-all duration-500 ${isScrolled ? "py-2" : "py-5"}`}>
+        <div
+          className={`mx-auto flex max-w-7xl items-center justify-between rounded-full px-5 py-3 transition-all duration-500 border ${
+            isScrolled
+              ? "border-[#CBBF9A]/80 bg-[#F8F1E6]/95 shadow-[0_8px_32px_rgba(0,0,0,0.1)] backdrop-blur-xl"
+              : "border-transparent bg-transparent"
+          }`}
+        >
+          {/* Logo */}
+          <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-full overflow-hidden border border-[#CBBF9A] shadow-sm">
+              <img src={brandLogo} alt="Creative Scaling" className="h-full w-full object-cover" />
             </div>
-            <div>
-              <p className="text-sm font-black uppercase tracking-[0.18em]">Creative Scaling</p>
-              <p className="text-xs text-[#151515]/55">Performance creative systems</p>
+            <div className="text-left">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] font-mono text-[#111113]">Creative Scaling</p>
+              <p className="text-[9px] text-[#667350] font-mono tracking-wider font-bold">Performance OS</p>
             </div>
           </button>
 
-          <nav className="hidden items-center gap-8 text-[10px] font-black uppercase tracking-[0.22em] md:flex">
-            {navLinks.map((link) => (
-              <button key={link.label} onClick={() => scrollToSection(link.href)} className={`nav-link relative transition hover:text-[#2454E8] ${activeSection === link.href ? "text-[#2454E8]" : "text-[#151515]/45"}`}>
+          {/* Nav */}
+          <nav className="hidden items-center gap-6 md:flex">
+            {navLinks.map(link => (
+              <button
+                key={link.label}
+                onClick={() => scrollTo(link.href)}
+                className={`relative text-[11px] font-black uppercase tracking-widest font-mono transition ${
+                  activeSection === link.href
+                    ? "text-[#2454E8]"
+                    : "text-[#111113]/70 hover:text-[#2454E8]"
+                }`}
+              >
                 {link.label}
                 {activeSection === link.href && (
-                  <motion.span layoutId="nav-indicator" className="absolute -bottom-[6px] left-0 right-0 h-[2px] rounded-full bg-[#2454E8]" transition={{ type: "spring", stiffness: 380, damping: 30 }} />
+                  <motion.span
+                    layoutId="nav-pill"
+                    className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-[#2454E8]"
+                    transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                  />
                 )}
               </button>
             ))}
           </nav>
 
-          <div className="hidden md:block">
-            <BlueButton href="/#apply" className="px-4 py-2.5">Book a Strategy Review</BlueButton>
+          {/* Controls */}
+          <div className="flex items-center gap-2.5">
+            <a
+              href="#apply"
+              onClick={e => { e.preventDefault(); scrollTo("#apply"); }}
+              className="hidden md:inline-flex cool-button text-xs py-2 h-9 px-5"
+            >
+              Apply for Strategy Review
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </a>
+            <button
+              onClick={() => setMenuOpen(v => !v)}
+              className="grid h-9 w-9 place-items-center rounded-full border border-[#CBBF9A] bg-white/70 md:hidden"
+            >
+              {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
-
-          <button onClick={() => setMenuOpen((value) => !value)} className="grid h-10 w-10 place-items-center rounded-2xl border border-[#151515]/15 bg-white/35 transition hover:bg-[#2454E8]/10 md:hidden" aria-label="Toggle menu">
-            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
         </div>
 
         <AnimatePresence>
           {menuOpen && (
-            <motion.div initial={{ opacity: 0, y: -16, height: 0 }} animate={{ opacity: 1, y: 0, height: "auto" }} exit={{ opacity: 0, y: -16, height: 0 }} transition={{ duration: 0.45, ease: smoothSpring }} className="pointer-events-auto mx-auto mt-3 max-w-7xl overflow-hidden rounded-[2rem] border border-[#151515]/10 bg-[#F8F1E6]/95 px-5 py-5 shadow-2xl backdrop-blur-2xl md:hidden">
-              <div className="grid gap-4 text-sm font-black uppercase tracking-[0.18em] text-[#151515]/55">
-                {navLinks.map((link) => (
-                  <button key={link.label} onClick={() => scrollToSection(link.href)} className="text-left transition hover:text-[#2454E8]">
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="absolute left-4 right-4 mt-2 rounded-[2rem] border border-[#CBBF9A] bg-[#F8F1E6]/98 p-5 shadow-2xl backdrop-blur-xl md:hidden"
+            >
+              <div className="grid gap-3 text-[11px] font-black uppercase tracking-widest font-mono">
+                {navLinks.map(link => (
+                  <button
+                    key={link.label}
+                    onClick={() => scrollTo(link.href)}
+                    className="text-left py-2 border-b border-[#CBBF9A]/40 text-[#111113]/80 hover:text-[#2454E8]"
+                  >
                     {link.label}
                   </button>
                 ))}
                 <a
-                  href="/#apply"
-                  className="mt-2 inline-flex rounded-2xl bg-[#151515] px-4 py-4 text-center text-[11px] font-black text-white transition hover:bg-[#333]"
+                  href="#apply"
+                  onClick={e => { e.preventDefault(); scrollTo("#apply"); }}
+                  className="mt-2 cool-button w-full text-center text-xs"
                 >
-                  Book a Strategy Review
+                  Apply for Strategy Review
                 </a>
               </div>
             </motion.div>
@@ -1201,120 +985,303 @@ export default function OmarAISystemsLandingPage() {
         </AnimatePresence>
       </header>
 
-      <section id="top" className="relative z-10 mx-auto grid max-w-7xl gap-8 px-4 pb-12 pt-20 md:grid-cols-[1fr_0.9fr] md:gap-12 md:px-8 md:pb-24 md:pt-32">
-        <motion.div initial="hidden" animate="visible" variants={fadeUp} transition={{ duration: 0.7, ease: smoothSpring }} className="flex flex-col justify-center">
-          <Label>Performance Creative Systems</Label>
-          <h1 className="hero-title mt-7 max-w-4xl font-serif text-[2.5rem] font-bold leading-[1.04] text-[#151515] sm:text-[4.2rem] md:text-[6.8rem] lg:text-[7.6rem]">
-            Build a creative engine for <AccentText>{typedHeadline}<span className="typed-cursor">|</span></AccentText>.
+      {/* ══════════════════════════════════════════
+          SECTION 1: THE HERO SECTION & GUARANTEE PROMISE
+      ══════════════════════════════════════════ */}
+      <section className="relative z-10 mx-auto max-w-7xl px-4 pb-12 pt-28 md:px-8 md:pt-36 text-center flex flex-col items-center overflow-visible">
+        {/* Section 1 blurred logos: Meta (left) + Shopify (right) */}
+        <SectionBlurredLogos leftSrc={META_LOGO} leftRound={false} rightSrc={SHOPIFY_LOGO} rightRound={false} />
+        <motion.div initial="hidden" animate="visible" variants={fadeUp} className="max-w-4xl space-y-6">
+          
+          {/* Eyebrow / Kicker Badge */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#CBBF9A] bg-white/80 px-4 py-2 shadow-sm">
+            <span className="h-2 w-2 rounded-full bg-[#2454E8] animate-pulse" />
+            <span className="font-mono text-[10px] md:text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#111113]">
+              SHOPIFY PERFORMANCE CREATIVE OPERATING SYSTEM
+            </span>
+          </div>
+
+          {/* Main Headline (H1) with Solid Blue Highlight on Performance Creative */}
+          <h1 className="font-heading text-4xl font-extrabold leading-[1.08] sm:text-6xl md:text-[5rem] text-[#111113]">
+            <span className="solid-highlight">Performance Creative</span> Systems for Shopify Brands.
           </h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-[#151515]/72 md:mt-8 md:text-lg md:leading-8">
-            We help Shopify brands launch performance statics, video creatives, and testing systems so they can test faster, learn faster, and stop running out of winning creatives.
+
+          {/* Subheadline with Solid Blue Highlight on AI speed */}
+          <p className="mx-auto max-w-3xl text-base sm:text-lg leading-8 text-[#111113]/85 font-medium">
+            We combine studio-grade brand direction with <span className="solid-highlight text-sm sm:text-base py-0.5 px-2">AI speed</span> to launch high-converting statics and video creatives in 6 days—giving you scalable ad angles without $5,000 agency fees or cheap, buggy-looking AI spam.
           </p>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row md:mt-8">
-            <BlueButton href="/#apply">Book a Strategy Review</BlueButton>
-            <OutlineButton href="#process">See How It Works</OutlineButton>
+
+          {/* Prominent Guarantee Feature Box (High-Contrast Card directly under subheadline) */}
+          <div className="my-6 mx-auto max-w-3xl text-left">
+            <div className="guarantee-card p-6 md:p-8 space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#2454E8] text-white">
+                  <Zap className="h-4 w-4 fill-white" />
+                </span>
+                <span className="font-mono text-xs font-black uppercase tracking-[0.2em] text-[#2454E8]">
+                  THE LAUNCH COHORT GUARANTEE
+                </span>
+              </div>
+              <p className="font-heading text-lg sm:text-xl font-extrabold text-[#111113] leading-snug">
+                If our creatives don't outperform your current winning ad angles, <span className="text-[#2454E8] font-extrabold">we work for free until they do.</span>
+              </p>
+              <p className="text-xs sm:text-sm text-[#111113]/80 leading-6">
+                We benchmark every sprint against your account data. If we don't land you at least <span className="text-[#2454E8] font-bold">3 proven winning ad angles</span> that <span className="text-[#2454E8] font-bold">beat your baseline CPA or CTR</span>, we keep producing and testing new variations for free until we hit the metric.
+              </p>
+            </div>
           </div>
-          <div className="mt-6 flex flex-wrap gap-2 md:mt-8">
-            {["Best for $30k+/month", "Paid + organic creative", "No random one-off assets"].map((item) => (
-              <span key={item} className="rounded-full border border-[#151515]/15 bg-[#F8F1E6]/75 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-[#151515]/60 md:px-4 md:py-2 md:text-xs">
-                {item}
-              </span>
-            ))}
+
+          {/* Primary Call to Action */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-1">
+            <a
+              href="#apply"
+              onClick={e => { e.preventDefault(); scrollTo("#apply"); }}
+              className="cool-button text-sm w-full sm:w-auto px-8 py-4"
+            >
+              Apply for a Strategy Review
+              <ArrowUpRight className="h-4 w-4" />
+            </a>
+            <button
+              onClick={() => scrollTo("#interactive-plan")}
+              className="glass-button text-sm w-full sm:w-auto px-8 py-4"
+            >
+              See Actionable Strategy Plan
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
+
+          {/* Micro-text under button */}
+          <p className="text-xs font-bold font-mono text-[#667350] uppercase tracking-wider">
+            Best for Shopify brands doing $30k+/month ready to run structured ad tests.
+          </p>
         </motion.div>
-        <BrandSystemVisual />
+
+
+        {/* Interactive Workspace OS Simulator */}
+        <div className="w-full max-w-5xl">
+          <WorkspaceDashboardSimulator />
+        </div>
       </section>
 
-      <section className="relative z-10 mx-auto max-w-7xl px-4 pb-10 md:px-8 md:pb-16">
-        <div className="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-4">
-          {proofStats.map(([value, label], index) => (
-            <motion.div key={label} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={fadeUp} transition={{ duration: 0.55, delay: index * 0.05, ease: smoothSpring }} whileHover={{ y: -8, scale: 1.015 }} className="reveal-card rounded-[2rem] border border-[#151515]/15 bg-[#F8F1E6]/75 p-4 shadow-sm md:p-5">
-              <p className="font-serif text-3xl font-semibold leading-none text-[#2454E8] sm:text-4xl md:text-5xl">{value}</p>
-              <p className="mt-3 text-xs font-black uppercase tracking-[0.16em] text-[#151515]/70 sm:text-sm md:mt-4">{label}</p>
-            </motion.div>
+      {/* ══════════════════════════════════════════
+          SECTION 2: CLEAN, DISTRACTION-FREE FORM SUBMISSION
+      ══════════════════════════════════════════ */}
+      <section id="apply" className="relative z-10 mx-auto max-w-4xl px-4 py-16 md:px-8 md:py-24 overflow-visible">
+        {/* Section 2 blurred logos: TikTok (left) + Creative Scaling (right) */}
+        <SectionBlurredLogos leftSrc={TIKTOK_LOGO} leftRound={false} rightSrc={brandLogo} rightRound={true} />
+        {/* Single Focus Header */}
+        <div className="text-center mb-8 space-y-2">
+          <h2 className="font-heading text-3xl font-extrabold sm:text-5xl text-[#111113]">
+            Apply for a Strategy Review
+          </h2>
+          <p className="mx-auto max-w-lg text-sm text-[#111113]/70 font-medium">
+            Complete the 60-second application to unlock calendar booking.
+          </p>
+        </div>
+
+        {/* Clean, Clutter-Free Embedded Form */}
+        <CleanBookingSection />
+
+        {/* Streamlined Step Indicator */}
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 text-center">
+          {[
+            { step: "1", label: "Complete 60-second application" },
+            { step: "→", label: "" },
+            { step: "2", label: "Auto-forwarded to booking calendar" },
+            { step: "→", label: "" },
+            { step: "3", label: "Lock in Strategy Review" },
+          ].map((item, i) => (
+            <div key={i} className={`flex items-center gap-2 ${item.step === "→" ? "text-[#CBBF9A] text-lg font-bold" : ""}`}>
+              {item.step === "→" ? (
+                <span>{item.step}</span>
+              ) : (
+                <>
+                  <span className="grid h-6 w-6 place-items-center rounded-full bg-[#2454E8] text-white text-[10px] font-bold font-mono">{item.step}</span>
+                  <span className="text-xs font-bold text-[#111113]/80">{item.label}</span>
+                </>
+              )}
+            </div>
           ))}
         </div>
       </section>
 
-      <section className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
-        <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <div>
-            <Label>The real problem</Label>
-            <h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">
-              Most brands do not have a media buying problem. They have a <AccentText><TypewriterText text="creative system" speed={40} delay={500} /></AccentText> problem.
-            </h2>
+      {/* ══════════════════════════════════════════
+          INTERACTIVE ACTIONABLE PLAN SECTION
+      ══════════════════════════════════════════ */}
+      <InteractiveActionablePlan />
+
+      {/* ══════════════════════════════════════════
+          3. PROOF STRIP
+      ══════════════════════════════════════════ */}
+      <section className="relative z-10 mx-auto max-w-7xl px-4 py-10 md:px-8 border-y border-[#CBBF9A]/60 bg-white/40 overflow-visible">
+        {/* Section 3 blurred logos: HER ALTAR 1 (left) + HER ALTAR 2 (right) */}
+        <SectionBlurredLogos leftSrc={HER_ALTAR_1} leftRound={true} rightSrc={HER_ALTAR_2} rightRound={true} />
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <p className="font-mono text-[11px] text-[#667350] font-bold uppercase tracking-widest text-center md:text-left">
+            Proof built from real systems, not theory:
+          </p>
+          <div className="grid grid-cols-2 md:flex flex-wrap items-center justify-center gap-6 md:gap-12">
+            {proofStats.map((stat, i) => (
+              <div key={i} className="text-center">
+                <span className={`font-mono text-2xl md:text-3xl font-extrabold ${stat.highlight ? "text-[#2454E8]" : "text-[#111113]"}`}>
+                  {stat.value}
+                </span>
+                <p className="text-[10px] font-mono text-[#111113]/60 font-bold uppercase mt-0.5">{stat.label}</p>
+              </div>
+            ))}
           </div>
-          <p className="max-w-md text-base leading-7 text-[#151515]/68">
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════
+          4. PROBLEM
+      ══════════════════════════════════════════ */}
+      <section className="relative z-10 mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
+        <div className="mb-10 max-w-3xl">
+          <div className="section-kicker">The real problem</div>
+          <h2 className="font-heading text-3xl font-extrabold sm:text-5xl md:text-6xl mt-4 text-[#111113] leading-tight">
+            Most brands do not have a media buying problem.{" "}
+            <span className="text-[#2454E8]">They have a creative system problem.</span>
+          </h2>
+          <p className="mt-4 text-sm md:text-base text-[#111113]/75 leading-7 max-w-2xl font-medium">
             Winning ads come from repeated testing, clear hooks, strong creative direction, and a workflow that keeps shipping useful ideas every week.
           </p>
         </div>
-        <motion.div
-          className="grid gap-4 md:grid-cols-3"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={staggerContainer}
-        >
-          {problemCards.map((card, index) => (
-            <motion.div key={card.title} variants={staggerItem} whileHover={{ y: -8, scale: 1.02 }}>
-              <PaperCard className="reveal-card">
-                <span className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-[#87916F]">0{index + 1}</span>
-                <h3 className="mt-8 font-serif text-4xl leading-none">{card.title}</h3>
-                <p className="mt-4 text-sm leading-7 text-[#151515]/65">{card.text}</p>
-              </PaperCard>
+        <div className="grid gap-5 md:grid-cols-3">
+          {problemCards.map((card, i) => (
+            <motion.div
+              key={i}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-60px" }}
+              variants={fadeUp}
+              transition={{ delay: i * 0.08 }}
+            >
+              <div className="card-surface p-6 text-left flex flex-col justify-between min-h-[200px] h-full">
+                <div>
+                  <span className="font-mono text-[10px] font-bold text-[#667350] uppercase tracking-widest">{card.kicker}</span>
+                  <h3 className="font-heading text-xl font-bold mt-4 text-[#111113]">{card.title}</h3>
+                </div>
+                <p className="text-xs sm:text-sm text-[#111113]/75 leading-6 mt-3 font-medium">{card.text}</p>
+              </div>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
       </section>
 
-      <section id="services" className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
+      {/* ══════════════════════════════════════════
+          5. WHAT CREATIVE SCALING DOES
+      ══════════════════════════════════════════ */}
+      <section id="services" className="relative z-10 mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
         <div className="mb-10">
-          <Label>Services</Label>
-          <h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">
-            Output and learning, not more <AccentText><TypewriterText text="random content" speed={40} delay={800} /></AccentText>.
-          </h2>
+          <div className="section-kicker">Core capability</div>
+          <h2 className="font-heading text-3xl font-extrabold sm:text-5xl mt-4 text-[#111113]">What Creative Scaling does</h2>
+          <p className="text-sm md:text-base text-[#111113]/75 mt-3 max-w-xl font-medium">
+            We build the creative output and testing structure Shopify brands need to keep learning, improving, and scaling.
+          </p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {services.map((service, index) => {
-            const Icon = service.icon;
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {services.map((svc, i) => {
+            const Icon = svc.icon;
             return (
-              <motion.div key={service.title} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={fadeUp} transition={{ duration: 0.55, delay: index * 0.04, ease: smoothSpring }} whileHover={{ y: -8, scale: 1.012 }} className="reveal-card group rounded-[2rem] border border-[#151515]/15 bg-[#F8F1E6]/75 p-6 shadow-sm transition hover:bg-white/50 hover:shadow-[0_18px_50px_rgba(21,21,21,0.1)]">
-                <div className="mb-10 flex items-center justify-between">
-                  <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[#151515] text-white transition group-hover:bg-[#2454E8]">
-                    <Icon className="h-5 w-5" />
+              <motion.div
+                key={i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-60px" }}
+                variants={fadeUp}
+                transition={{ delay: i * 0.07 }}
+              >
+                <div className="card-surface p-6 flex flex-col justify-between min-h-[270px] group text-left h-full">
+                  <div className="space-y-4">
+                    <div className="h-10 w-10 rounded-xl bg-[#111113] text-white flex items-center justify-center transition group-hover:bg-[#2454E8]">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="font-heading text-lg font-bold text-[#111113]">{svc.title}</h3>
+                    <p className="text-xs text-[#111113]/70 leading-5 font-medium">{svc.text}</p>
                   </div>
-                  <span className="font-mono text-xs text-[#151515]/35">0{index + 1}</span>
+                  <div className="border-t border-[#CBBF9A]/60 pt-4 mt-5 space-y-2">
+                    {svc.bullets.map((b, bi) => (
+                      <div key={bi} className="flex items-center gap-2 text-[11px] font-bold text-[#111113]/80">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#2454E8] flex-shrink-0" />
+                        {b}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <h3 className="font-serif text-3xl leading-none">{service.title}</h3>
-                <p className="mt-4 text-sm leading-7 text-[#151515]/65">{service.text}</p>
               </motion.div>
             );
           })}
         </div>
       </section>
 
-      <section id="case-study" className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
-        <div className="editorial-panel relative overflow-hidden rounded-[2rem] border border-[#151515]/15 bg-[#F8F1E6]/88 p-6 text-[#151515] shadow-[0_30px_90px_rgba(21,21,21,0.12)] md:p-10">
-          <div className="relative z-10 grid gap-10 md:grid-cols-[0.95fr_1.05fr] md:items-center">
-            <div>
-              <Label>Owned Proof</Label>
-              <h2 className="mt-7 max-w-3xl font-serif text-3xl font-bold leading-[0.94] sm:text-5xl sm:leading-[0.90] md:text-8xl md:leading-[0.86]">
-                HER ALTAR was the <TypewriterText text="testing ground" speed={40} delay={600} />.
-              </h2>
-              <p className="mt-6 max-w-xl text-base leading-7 text-[#151515]/70 md:text-lg md:leading-8">
-                A real Shopify brand built with product selection, store design, creative direction, content strategy, organic content, and paid creative thinking.
-              </p>
+      {/* ══════════════════════════════════════════
+          6. WHY I BUILT IT
+      ══════════════════════════════════════════ */}
+      <section className="relative z-10 mx-auto max-w-3xl px-4 py-16 md:py-24 text-center">
+        <div className="rounded-[2.5rem] border border-[#CBBF9A] bg-white/70 backdrop-blur-md p-8 md:p-12 shadow-lg">
+          <div className="section-kicker">Founder story</div>
+          <h2 className="font-heading text-3xl font-extrabold mt-4 text-[#111113]">Why I built Creative Scaling</h2>
+          <div className="text-sm md:text-base text-[#111113]/80 leading-7 space-y-4 mt-6 text-left font-medium">
+            <p>I built Creative Scaling after building my own Shopify brand from the ground up.</p>
+            <p>I saw how hard it was to create content that actually fit the brand, explained the product, tested the right hooks, and supported both organic growth and paid acquisition.</p>
+            <p>So instead of only making videos, I built a full creative system: research, hooks, concepts, scripts, production, delivery, feedback, and review.</p>
+          </div>
+          <p className="font-premium text-lg md:text-xl text-[#2454E8] border-t border-[#CBBF9A]/60 pt-5 mt-6 text-left font-semibold">
+            Now Creative Scaling helps Shopify brands build that same kind of system without relying on random one-off content.
+          </p>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════
+          7. HER ALTAR CASE STUDY
+      ══════════════════════════════════════════ */}
+      <section id="case-study" className="relative z-10 mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
+        <div className="rounded-[2.5rem] border border-[#CBBF9A] bg-white/70 overflow-hidden shadow-lg">
+          {/* Hero image strip at top */}
+          <div className="relative h-36 md:h-48 overflow-hidden">
+            <div className="absolute inset-0 flex">
+              <div className="flex-1 bg-cover bg-center" style={{ backgroundImage: `url(${HER_ALTAR_1})` }} />
+              <div className="flex-1 bg-cover bg-center" style={{ backgroundImage: `url(${HER_ALTAR_2})` }} />
             </div>
-            <div className="grid gap-3">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/95" />
+            <div className="absolute inset-0 bg-gradient-to-t from-transparent to-black/30" />
+            <div className="absolute bottom-4 left-6">
+              <span className="font-mono text-xs font-black uppercase tracking-widest text-white bg-[#d85c9d] px-3.5 py-1.5 rounded-full shadow-md">HER ALTAR</span>
+            </div>
+          </div>
+
+          <div className="p-6 md:p-10 grid gap-8 lg:grid-cols-2 items-center">
+            <div className="space-y-5">
+              <div className="section-kicker">Internal study — owned brand</div>
+              <h2 className="font-heading text-3xl font-extrabold md:text-5xl text-[#111113] leading-tight">
+                HER ALTAR: the system we built for ourselves
+              </h2>
+              <p className="text-sm text-[#111113]/75 leading-6 font-medium">
+                A real Shopify fashion brand built to test hybrid AI production workflows — and the testing ground that shaped the Creative Scaling process.
+              </p>
+              <div className="flex gap-8">
+                <div>
+                  <span className="font-mono text-3xl md:text-4xl font-extrabold text-[#2454E8]">700k+</span>
+                  <p className="text-[10px] font-mono text-[#111113]/60 font-bold mt-1 uppercase">Organic Views</p>
+                </div>
+                <div>
+                  <span className="font-mono text-3xl md:text-4xl font-extrabold text-[#111113]">7k+</span>
+                  <p className="text-[10px] font-mono text-[#111113]/60 font-bold mt-1 uppercase">Followers in ~10 Days</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
               {[
-                "700K+ organic views from owned content",
-                "7K+ followers in roughly 10 days",
-                "Thousands of site visitors before checkout was interrupted by a payment issue",
-                "Lessons became the Creative Scaling process",
-              ].map((item) => (
-                <div key={item} className="flex items-center gap-3 rounded-2xl border border-[#151515]/12 bg-white/35 p-4 text-sm font-semibold text-[#151515]/78 shadow-sm">
-                  <CheckCircle2 className="h-5 w-5 shrink-0 text-[#D85C9D]" />
-                  {item}
+                "Hybrid AI production reduces studio costs significantly",
+                "Systemized hook maps beat raw video volume every time",
+                "Brand direction remains critical when applying AI speeds",
+                "A structured creative engine amplifies results at scale",
+              ].map((lesson, i) => (
+                <div key={i} className="flex gap-3 items-start p-4 rounded-2xl border border-[#CBBF9A]/60 bg-[#F8F1E6]/60">
+                  <CheckCircle2 className="h-5 w-5 text-[#2454E8] shrink-0 mt-0.5" />
+                  <span className="text-xs md:text-sm font-semibold text-[#111113]">{lesson}</span>
                 </div>
               ))}
             </div>
@@ -1322,263 +1289,223 @@ export default function OmarAISystemsLandingPage() {
         </div>
       </section>
 
-      <motion.section
-        className="relative z-10 mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-[0.85fr_1.15fr] md:px-8 md:py-20 md:items-center"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-80px" }}
-        variants={sectionReveal}
-      >
-        <div>
-          <Label>Founder-led</Label>
-          <h2 className="mt-6 font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">Why I built Creative Scaling.</h2>
+      {/* ══════════════════════════════════════════
+          8. HOW IT WORKS
+      ══════════════════════════════════════════ */}
+      <section id="process" className="relative z-10 mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
+        <div className="mb-10 text-center max-w-2xl mx-auto space-y-4">
+          <div className="section-kicker">Workflow pipeline</div>
+          <h2 className="font-heading text-3xl font-extrabold sm:text-5xl text-[#111113]">How the Creative Scaling system works</h2>
+          <p className="text-sm text-[#111113]/75 leading-6 font-medium">
+            Every Growth Partner goes through a structured process. We do not just create assets — we build a weekly system for deciding what to make, why it matters, and what it should test.
+          </p>
         </div>
-        <PaperCard>
-          <p className="text-base leading-7 text-[#151515]/72 md:text-lg md:leading-8">I built Creative Scaling after building my own Shopify brand from the ground up. I saw how hard it was to create content that fit the brand, explained the product, tested the right hooks, and supported both organic growth and paid acquisition.</p>
-          <p className="mt-4 text-base leading-7 text-[#151515]/72 md:mt-5 md:text-lg md:leading-8">So instead of only making videos, I built a full creative system: research, hooks, concepts, scripts, production, Creative Delivery, feedback, and Performance Review.</p>
-          <span className="mt-6 inline-flex rounded-full bg-[#87916F]/20 px-3 py-2 font-mono text-xs font-bold uppercase tracking-[0.12em] text-[#526044]">A Growth Partner, not random one-off content</span>
-        </PaperCard>
-      </motion.section>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+          {timelineSteps.map((step, i) => (
+            <motion.div
+              key={i}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-40px" }}
+              variants={fadeUp}
+              transition={{ delay: i * 0.06 }}
+            >
+              <div className="card-surface p-5 flex flex-col justify-between min-h-[170px] text-left h-full">
+                <div>
+                  <span className="font-mono text-[11px] font-bold text-[#667350]">{step.num}</span>
+                  <p className="font-bold text-sm mt-3 text-[#111113]">{step.name}</p>
+                </div>
+                <p className="text-xs text-[#111113]/70 leading-5 mt-2 font-medium">{step.desc}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
 
-      <section id="process" className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
-        <div className="torn-edge bg-[#D85C9D]/75 px-4 py-8 shadow-[0_20px_60px_rgba(216,92,157,0.18)] sm:px-8 sm:py-12 md:px-12 md:py-16">
-          <div className="grid gap-6 md:grid-cols-[0.85fr_1.15fr] md:gap-8 md:items-center">
-            <h2 className="font-serif text-3xl font-semibold leading-[1.02] text-[#151515] sm:text-5xl sm:leading-[0.92] md:text-7xl">
-              How the Creative Scaling system works.
-            </h2>
-            <div className="space-y-4 text-base leading-7 text-[#151515]/78 md:space-y-5 md:text-lg md:leading-8">
-              <p>We do not just make assets. We build a weekly system for deciding what to make, why it matters, where it will be used, and what it should test.</p>
-              <p className="font-serif text-3xl font-bold leading-none text-white">Creative Delivery. Performance Review. Next Sprint.</p>
+      {/* ══════════════════════════════════════════
+          9. PRICING
+      ══════════════════════════════════════════ */}
+      <section id="pricing" className="relative z-10 mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
+        <div className="mb-12 text-center max-w-2xl mx-auto space-y-4">
+          <div className="section-kicker">Beta retainer pricing</div>
+          <h2 className="font-heading text-3xl font-extrabold sm:text-5xl text-[#111113]">Launch Beta Cohort packages</h2>
+          <p className="text-sm text-[#111113]/75 leading-6 font-medium">
+            For our first 3 clients: lower entry pricing in exchange for speed, feedback, and anonymized performance learnings.
+          </p>
+        </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {packagesList.map((pkg, i) => (
+            <motion.div
+              key={i}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-60px" }}
+              variants={fadeUp}
+              transition={{ delay: i * 0.08 }}
+            >
+              <div className={`card-surface p-6 md:p-8 flex flex-col justify-between min-h-[500px] relative h-full ${
+                pkg.recommended ? "border-[#2454E8] ring-2 ring-[#2454E8]/30 shadow-2xl" : ""
+              }`}>
+                {pkg.recommended && (
+                  <span className="absolute top-5 right-5 bg-[#2454E8] text-white font-mono text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">
+                    Recommended
+                  </span>
+                )}
+                <div>
+                  <span className="font-mono text-[10px] text-[#667350] font-bold uppercase tracking-widest">{pkg.priceKicker}</span>
+                  <h3 className="font-heading text-2xl font-bold mt-2 text-[#111113]">{pkg.name}</h3>
+                  <p className="font-mono text-3xl md:text-4xl font-extrabold mt-4 text-[#2454E8]">{pkg.price}</p>
+                  <p className="text-[11px] text-[#111113]/60 font-mono mt-1 uppercase font-bold">{pkg.terms}</p>
+                  <p className="text-xs md:text-sm text-[#111113]/75 leading-6 mt-4 font-medium">{pkg.copy}</p>
+                  <div className="mt-6 space-y-3 border-t border-[#CBBF9A]/60 pt-5">
+                    {pkg.items.map((item, ii) => (
+                      <div key={ii} className="flex gap-2.5 text-xs text-[#111113] font-semibold">
+                        <CheckCircle2 className="h-4 w-4 text-[#2454E8] shrink-0 mt-0.5" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-8">
+                  <a
+                    href="#apply"
+                    onClick={e => { e.preventDefault(); scrollTo("#apply"); }}
+                    className="cool-button w-full text-xs text-center py-3.5"
+                  >
+                    Apply for Strategy Review
+                  </a>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+        <div className="mt-8 max-w-3xl mx-auto p-6 rounded-2xl border border-[#CBBF9A]/70 bg-white/60 text-xs md:text-sm text-[#111113]/80 leading-6 space-y-3 font-medium">
+          <p><strong className="text-[#111113] font-bold">Post-Beta Pricing:</strong> After the Launch Beta Cohort, pricing settles at Growth Partner starting at $3,500/mo and Scale Partner starting at $8,000/mo.</p>
+          <p className="border-t border-[#CBBF9A]/60 pt-3"><strong className="text-[#111113] font-bold">Why the price is high:</strong> You are not paying for isolated files. You are paying for strategy, research, creative direction, production, weekly planning, organized delivery, feedback, and ongoing testing support.</p>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════
+          10. AFTER BOOKING STEPS
+      ══════════════════════════════════════════ */}
+      <section className="relative z-10 mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
+        <div className="mb-10">
+          <div className="section-kicker">After you apply</div>
+          <h2 className="font-heading text-3xl font-extrabold sm:text-5xl mt-4 text-[#111113]">
+            What happens after you book a Strategy Review
+          </h2>
+          <p className="text-xs md:text-sm text-[#111113]/60 mt-2 font-medium">You will always know what happens next, where files live, and how feedback works.</p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {afterBookingSteps.map((step, i) => (
+            <div key={i} className="card-surface p-5 text-left flex flex-col justify-between min-h-[160px] h-full">
+              <div>
+                <span className="font-mono text-[11px] text-[#667350] font-bold">{step.number}</span>
+                <p className="font-bold text-sm mt-3 text-[#111113]">{step.title}</p>
+              </div>
+              <p className="text-xs text-[#111113]/70 leading-5 mt-2 font-medium">{step.text}</p>
             </div>
-          </div>
-        </div>
-        <div className="mt-8">
-          <ProcessCarousel steps={processSteps} />
+          ))}
         </div>
       </section>
 
-      <section className="relative z-10 mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-[0.9fr_1.1fr] md:px-8 md:py-20 md:items-center">
-        <div>
-          <Label>Fit Filter</Label>
-          <h2 className="mt-6 font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">
-            Built for <TypewriterText text="Shopify brands" speed={40} delay={400} /> ready to test seriously.
-          </h2>
-          <p className="mt-6 max-w-xl text-base leading-7 text-[#151515]/70 md:text-lg md:leading-8">
-            The higher your testing volume, the more valuable the system becomes.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-2">
-            {packageFit.map((range) => (
-              <span key={range} className="rounded-full border border-[#151515]/15 bg-[#F8F1E6]/80 px-4 py-2 font-mono text-sm font-bold text-[#2454E8]">
-                {range}
-              </span>
-            ))}
-          </div>
+      {/* ══════════════════════════════════════════
+          11. DELIVERABLES
+      ══════════════════════════════════════════ */}
+      <section className="relative z-10 mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-24">
+        <div className="mb-10 text-center max-w-2xl mx-auto">
+          <div className="section-kicker">System assets</div>
+          <h2 className="font-heading text-3xl font-extrabold sm:text-5xl mt-4 text-[#111113]">What you receive inside the system</h2>
         </div>
-        <PaperCard>
-          <div className="grid gap-4">
-            {["Real product demand", "Need more consistent creative output", "Value structure and process", "Want both paid and organic support", "Ready to share brand and performance context"].map((item) => (
-              <div key={item} className="flex items-center justify-between border-b border-[#151515]/10 pb-4 last:border-b-0 last:pb-0">
-                <div className="flex items-center gap-3">
-                  <MousePointerClick className="h-5 w-5 text-[#2454E8]" />
-                  <span className="font-bold">{item}</span>
-                </div>
-                <span className="text-[#151515]/35">-&gt;</span>
-              </div>
-            ))}
-          </div>
-        </PaperCard>
-      </section>
-
-      <section className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
-        <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
-          <div><Label>Creative support</Label><h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">Services built around <TypewriterText text="creative output" speed={40} delay={500} /> and learning.</h2></div>
-          <p className="max-w-md text-base leading-7 text-[#151515]/65">Each service connects to a testing cycle, not a disconnected asset request.</p>
-        </div>
-        <motion.div
-          className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={staggerContainer}
-        >
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[
-            ["Organic Creative", "TikTok, Reels, Shorts, product content, founder direction, and hook testing."],
-            ["Paid Creative", "Meta and TikTok ads, UGC-style video, statics, product demos, and offer creatives."],
-            ["Creative Strategy", "Competitor research, hook library, angle development, roadmap, and product priorities."],
-            ["Creative Systems", "Weekly sprints, delivery folders, feedback flow, Performance Reviews, and planning."],
-          ].map(([title, text], index) => (
-            <motion.div key={title} variants={staggerItem} whileHover={{ y: -8, scale: 1.02 }}>
-              <PaperCard className="reveal-card">
-                <span className="font-mono text-xs font-bold text-[#87916F]">0{index + 1}</span>
-                <h3 className="mt-8 font-serif text-3xl leading-none">{title}</h3>
-                <p className="mt-4 text-sm leading-7 text-[#151515]/65">{text}</p>
-              </PaperCard>
-            </motion.div>
+            "Creative Strategy documents", "Hook Library mapping", "Competitor Research Board",
+            "Structured Creative Briefs", "Weekly Creative Sprint Board", "Performance Statics",
+            "Performance Video Creatives", "Creative Delivery Folder", "Feedback Tracker",
+            "Monthly Performance Review", "Next Sprint Plan roadmaps",
+          ].map((item, i) => (
+            <div key={i} className="flex items-center gap-3 p-4 rounded-2xl border border-[#CBBF9A]/60 bg-white/50">
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-[#2454E8] text-[10px] font-bold text-white font-mono shrink-0">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <p className="text-xs md:text-sm font-bold text-[#111113]">{item}</p>
+            </div>
           ))}
-        </motion.div>
-      </section>
-
-      <section id="pricing" className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
-        <div className="mb-10">
-          <Label>Packages</Label>
-          <h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">
-            Starting prices that <TypewriterText text="set clear expectations" speed={35} delay={700} />.
-          </h2>
         </div>
-        <motion.div
-          className="grid gap-4 lg:grid-cols-3"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={staggerContainer}
-        >
-          {packages.map((item) => (
-            <motion.div key={item.name} variants={staggerItem} whileHover={{ y: -10, scale: 1.02 }}>
-              <PaperCard className={`relative ${item.recommended ? "border-[#2454E8]/45" : ""}`}>
-                {item.recommended && <span className="absolute right-5 top-5 rounded-full bg-[#2454E8] px-3 py-1 font-mono text-xs font-bold uppercase tracking-[0.12em] text-white">Recommended</span>}
-                <h3 className="font-serif text-5xl leading-none">{item.name}</h3>
-                <p className="mt-4 font-serif text-3xl font-bold leading-none text-[#2454E8]">Starting at {item.price}</p>
-                <p className="mt-4 text-sm leading-7 text-[#151515]/65">{item.copy}</p>
-                <div className="mt-6 grid gap-3">
-                  {item.items.map((feature) => (
-                    <div key={feature} className="flex items-center gap-2 text-sm font-bold text-[#151515]/72">
-                      <CheckCircle2 className="h-4 w-4 text-[#2454E8]" />
-                      {feature}
-                    </div>
-                  ))}
-                </div>
-              </PaperCard>
-            </motion.div>
-          ))}
-        </motion.div>
-        <p className="mt-6 max-w-3xl text-sm leading-7 text-[#151515]/62">Every package is customized around volume, cadence, support needs, and the current creative bottleneck. You are paying for strategy, research, hooks, production, delivery, feedback, and iteration—not random images or videos.</p>
       </section>
 
-      <section className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
-        <div className="mb-10"><Label>Inside the system</Label><h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">What you <TypewriterText text="receive inside" speed={40} delay={600} /> the system.</h2><p className="mt-5 max-w-2xl text-base leading-7 text-[#151515]/70 md:text-lg md:leading-8">A clean operating system for connecting research, hooks, production, delivery, feedback, and performance learning.</p></div>
-        <motion.div
-          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
-          variants={staggerContainer}
-        >
-          {operatingItems.map((item, index) => (
-            <motion.div key={item} variants={staggerItem} whileHover={{ y: -5 }}>
-              <div className="flex items-center gap-4 rounded-2xl border border-[#151515]/15 bg-[#F8F1E6]/80 p-5 shadow-sm">
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-[#2454E8] font-mono text-xs font-bold text-white">{String(index + 1).padStart(2, "0")}</span>
-                <p className="font-bold text-[#151515]/78">{item}</p>
+      {/* ══════════════════════════════════════════
+          12. FAQ
+      ══════════════════════════════════════════ */}
+      <section id="faq" className="relative z-10 mx-auto max-w-5xl px-4 py-16 md:px-8 md:py-24">
+        <div className="mb-10 text-center">
+          <div className="section-kicker">Help center</div>
+          <h2 className="font-heading text-3xl font-extrabold sm:text-5xl mt-3 text-[#111113]">FAQ</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {faqItems.map((item, i) => (
+            <div key={i} className="card-surface p-6 text-left h-full flex flex-col justify-between">
+              <div>
+                <h3 className="font-heading text-base md:text-lg font-bold text-[#111113]">{item.q}</h3>
+                <p className="text-xs md:text-sm text-[#111113]/75 leading-6 mt-3 font-medium">{item.a}</p>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </section>
 
-      <section id="apply" className="relative z-10 mx-auto grid max-w-7xl gap-10 px-5 py-20 md:grid-cols-[0.82fr_1.18fr] md:px-8">
-        <div className="flex flex-col justify-center">
-          <Label>Apply Then Book</Label>
-          <h2 className="mt-6 font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">
-            Complete the short application before booking.
+      {/* ══════════════════════════════════════════
+          13. FINAL CTA
+      ══════════════════════════════════════════ */}
+      <section className="relative z-10 mx-auto max-w-4xl px-4 py-16 md:px-8 text-center">
+        <div className="rounded-[2.5rem] border border-[#CBBF9A] bg-white/70 backdrop-blur-md p-8 md:p-12 space-y-6 shadow-xl">
+          <div className="section-kicker">Next sprint</div>
+          <h2 className="font-heading text-3xl font-extrabold sm:text-5xl text-[#111113] max-w-2xl mx-auto leading-tight">
+            Ready to build a creative engine instead of chasing your next winning ad?
           </h2>
-          <p className="mt-6 max-w-lg text-base leading-7 text-[#151515]/70 md:text-lg md:leading-8">
-            This protects the calendar and makes the Strategy Review more premium. Once the application is submitted, the booking calendar appears.
+          <p className="text-sm md:text-base text-[#111113]/75 max-w-lg mx-auto leading-6 font-medium">
+            Apply for a Strategy Review and see what your first Creative Sprint should focus on.
           </p>
-          <div className="mt-8 grid gap-3">
-            {["Brand context", "Revenue range", "Current creative bottleneck", "Then book the call"].map((item) => (
-              <div key={item} className="flex items-center gap-3 text-sm font-bold text-[#151515]/72">
-                <ClipboardCheck className="h-5 w-5 text-[#2454E8]" />
-                {item}
+          <a
+            href="#apply"
+            onClick={e => { e.preventDefault(); scrollTo("#apply"); }}
+            className="cool-button inline-flex text-sm px-8 py-4"
+          >
+            Apply for a Strategy Review
+            <ArrowUpRight className="h-4 w-4" />
+          </a>
+          <p className="text-[11px] text-[#667350] font-mono uppercase tracking-widest font-bold">
+            If we are a fit, we will map your creative roadmap and recommend the next best step.
+          </p>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════
+          FOOTER
+      ══════════════════════════════════════════ */}
+      <footer className="relative z-10 border-t border-[#CBBF9A]/60 px-5 py-12 md:px-8 bg-[#F8F1E6]/70">
+        <div className="mx-auto max-w-7xl flex flex-col md:flex-row justify-between gap-8">
+          <div>
+            <p className="font-heading text-xl font-bold uppercase tracking-widest text-[#111113]">Creative Scaling</p>
+            <p className="text-xs text-[#111113]/60 font-medium mt-1">The Performance Creative Partner for Shopify Brands.</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-8 text-xs">
+            <div className="space-y-2">
+              <p className="font-mono text-[10px] text-[#667350] font-bold uppercase tracking-widest">Navigation</p>
+              <div className="flex flex-col gap-2 font-bold text-[#111113]/70">
+                {navLinks.map(l => (
+                  <button key={l.href} onClick={() => scrollTo(l.href)} className="text-left hover:text-[#2454E8]">{l.label}</button>
+                ))}
               </div>
-            ))}
+            </div>
+
           </div>
         </div>
-        <ApplicationFlow />
-      </section>
-
-      <section className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
-        <div className="mb-10"><Label>After your Strategy Review</Label><h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">You will always know what happens next.</h2><p className="mt-5 max-w-2xl text-base leading-7 text-[#151515]/70 md:text-lg md:leading-8">From discovery to the next sprint, the process is clear: where files live, how feedback works, and what we are making next.</p></div>
-        <motion.div
-          className="grid gap-3 md:grid-cols-2 lg:grid-cols-4"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
-          variants={staggerContainer}
-        >
-          {afterBookingSteps.map(([number, title, text]) => (
-            <motion.div key={title} variants={staggerItem} whileHover={{ y: -6, scale: 1.01 }}>
-              <PaperCard className="p-4 md:p-5">
-                <span className="font-mono text-xs font-bold text-[#87916F]">{number}</span>
-                <h3 className="mt-4 font-serif text-2xl leading-none">{title}</h3>
-                <p className="mt-3 text-sm leading-6 text-[#151515]/65">{text}</p>
-              </PaperCard>
-            </motion.div>
-          ))}
-        </motion.div>
-      </section>
-
-      <section className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
-        <PaperCard className="grid gap-6 p-4 md:grid-cols-[1fr_0.82fr] md:gap-8 md:p-10">
-          <div><Label>Ask Jimmy</Label><h2 className="mt-6 font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">Ask Jimmy about Creative Scaling.</h2><p className="mt-5 max-w-xl text-base leading-7 text-[#151515]/70 md:text-lg md:leading-8">Jimmy gives direct, qualified answers about the offer, packages, onboarding, pricing, creative process, and whether this is a fit for your brand.</p></div>
-          <div className="rounded-[1.5rem] border border-[#151515]/15 bg-[#F3EBDD] p-5"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-[#151515] text-white"><Bot className="h-5 w-5" /></div><div><p className="font-bold">Jimmy AI</p><p className="text-xs text-[#151515]/55">Short, structured, content-aware answers</p></div></div><div className="mt-5 space-y-2">{["Which package is right for my brand?", "What happens after I book?", "Why does Creative Scaling cost more?"].map((question) => <p key={question} className="rounded-xl bg-white/65 p-3 text-sm font-semibold text-[#151515]/70">{question}</p>)}</div><button type="button" onClick={() => window.dispatchEvent(new Event("open-jimmy"))} className="mt-5 text-sm font-black text-[#2454E8]">Open Jimmy →</button></div>
-        </PaperCard>
-      </section>
-
-      <section id="faq" className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20">
-        <div className="mb-10">
-          <Label>FAQ</Label>
-          <h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">
-            <TypewriterText text="Clear answers" speed={40} delay={800} /> before the call.
-          </h2>
-        </div>
-        <motion.div
-          className="grid gap-4 md:grid-cols-2"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={staggerContainer}
-        >
-          {faqItems.map(([question, answer]) => (
-            <motion.div key={question} variants={staggerItem} whileHover={{ y: -5, scale: 1.01 }}>
-              <PaperCard>
-                <h3 className="font-serif text-3xl leading-none">{question}</h3>
-                <p className="mt-4 text-sm leading-7 text-[#151515]/65">{answer}</p>
-              </PaperCard>
-            </motion.div>
-          ))}
-        </motion.div>
-      </section>
-
-      <motion.section
-        className="relative z-10 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-20"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-60px" }}
-        variants={sectionReveal}
-      >
-        <PaperCard className="grid gap-6 p-4 md:grid-cols-[1fr_auto] md:items-center md:gap-8 md:p-10">
-          <div>
-            <Label>Final CTA</Label>
-            <h2 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-[1.04] sm:text-5xl sm:leading-[0.94] md:text-7xl">
-              Stop running out of winning creative.
-            </h2>
-            <p className="mt-6 max-w-2xl text-base leading-7 text-[#151515]/70 md:text-lg md:leading-8">
-              Apply for a Strategy Review and see what your first Creative Sprint should focus on.
-            </p>
-          </div>
-          <BlueButton href="/#apply">Start Application</BlueButton>
-        </PaperCard>
-      </motion.section>
-
-      <footer className="relative z-10 border-t border-[#151515]/10 px-5 py-10 md:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-8 md:flex-row md:items-center">
-          <div>
-            <p className="font-serif text-4xl leading-none">Creative Scaling</p>
-            <p className="mt-2 text-sm font-semibold text-[#151515]/60">Performance creative systems for Shopify brands.</p>
-          </div>
-          <div className="flex flex-wrap gap-3 text-sm font-bold text-[#151515]/65">
-            {navLinks.map((link) => (
-              <button key={link.href} onClick={() => scrollToSection(link.href)} className="hover:text-[#2454E8]">{link.label}</button>
-            ))}
+        <div className="mx-auto max-w-7xl mt-8 pt-6 border-t border-[#CBBF9A]/40 flex items-center justify-between gap-4">
+          <p className="text-[10px] text-[#111113]/50 font-mono">© 2026 Creative Scaling. All rights reserved.</p>
+          <div className="flex items-center gap-3 opacity-70 hover:opacity-100 transition">
+            <img src={brandLogo} alt="" className="h-5 w-5 rounded-full object-cover" />
+            <span className="text-[9px] font-mono font-bold uppercase tracking-widest text-[#111113]">Built by Creative Scaling</span>
           </div>
         </div>
       </footer>
