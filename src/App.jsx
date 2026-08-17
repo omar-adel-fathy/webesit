@@ -20,6 +20,7 @@ import brandLogo from "../ChatGPT Image Jul 23, 2026, 02_16_52 AM.png";
 import FreeResourcesPage from "./components/FreeResourcesPage";
 import SiteFooter from "./components/SiteFooter";
 import SiteHeader from "./components/SiteHeader";
+import DiscoveryPage from "./components/DiscoveryPage";
 
 const tallyFormId = import.meta.env.VITE_TALLY_FORM_ID || "WOkqMa";
 
@@ -818,10 +819,6 @@ export default function CreativeScalingLandingPage() {
     return () => window.removeEventListener("popstate", syncPath);
   }, []);
 
-  if (currentPath.startsWith("/free-resources")) {
-    return <FreeResourcesPage />;
-  }
-
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY + 150;
@@ -860,9 +857,27 @@ export default function CreativeScalingLandingPage() {
 
     handleHashScroll();
     window.addEventListener("hashchange", handleHashScroll);
+    return () => window.removeEventListener("hashchange", handleHashScroll);
   }, []);
 
+  if (currentPath.startsWith("/free-resources")) {
+    return <FreeResourcesPage />;
+  }
+
+  const discoveryType = ["about", "news", "jimmy", "youtube"].find((page) => currentPath.startsWith(`/${page}`));
+  if (discoveryType) {
+    return <DiscoveryPage type={discoveryType} />;
+  }
+
   const scrollTo = (href) => {
+    if (href && href.startsWith("/")) {
+      const [path, hash] = href.split("#");
+      window.history.pushState({}, "", `${path || "/"}${hash ? `#${hash}` : ""}`);
+      setCurrentPath(path || "/");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (hash) window.setTimeout(() => document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" }), 80);
+      return;
+    }
     if (href && href.startsWith("#")) {
       const el = document.querySelector(href);
       if (el) {
