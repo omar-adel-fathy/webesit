@@ -5,11 +5,12 @@ import brandLogo from "../../ChatGPT Image Jul 23, 2026, 02_16_52 AM.png";
 
 export const navLinks = [
   { label: "Apply", href: "#apply" },
-  { label: "Interactive Plan", href: "#interactive-plan" },
   { label: "Services", href: "#services" },
+  { label: "About", href: "/about/" },
+  { label: "News", href: "/news/" },
+  { label: "Jimmy", href: "/jimmy/" },
+  { label: "YouTube", href: "/youtube/" },
   { label: "Process", href: "#process" },
-  { label: "Case Study", href: "#case-study" },
-  { label: "Pricing", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
 ];
 
