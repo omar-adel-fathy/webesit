@@ -1,0 +1,22 @@
+Jimmy site listening on http://0.0.0.0:3000
+[lead] 2026-08-17T01:09:45.676Z Baserow table metadata loaded: 11 fields 
+[lead] 2026-08-17T01:10:04.859Z Submission received from ::ffff:127.0.0.1 
+[lead] 2026-08-17T01:10:04.868Z Validation failed for ip=::ffff:127.0.0.1: {"email":"Please enter a valid email address."} 
+[lead] 2026-08-17T01:10:16.856Z Submission received from ::ffff:127.0.0.1 
+[lead] 2026-08-17T01:10:17.461Z Baserow lead created: id=8, email=strategy+codex-20260817011016@jimscaling.online, phone=***34 
+[lead] 2026-08-17T01:10:17.467Z Duplicate guard armed for strategy+codex-20260817011016@jimscaling.online (Free Resources) for 1800s 
+[lead] 2026-08-17T01:10:18.117Z Resend contact updated for strategy+codex-20260817011016@jimscaling.online (638d59d4-7623-46fb-ac86-352018aa680e) 
+[lead] 2026-08-17T01:10:18.610Z Delivery email sent to strategy+codex-20260817011016@jimscaling.online (86daf3de-a7ef-46c0-9b29-b8699be21b4f) 
+[lead] 2026-08-17T01:10:18.838Z Submission complete: lead 8 for strategy+codex-20260817011016@jimscaling.online 
+[lead] 2026-08-17T01:12:51.663Z Submission received from ::ffff:127.0.0.1 
+[lead] 2026-08-17T01:12:52.010Z Baserow lead created: id=9, email=strategy+browser-20260817011248@jimscaling.online, phone=***78 
+[lead] 2026-08-17T01:12:52.010Z Duplicate guard armed for strategy+browser-20260817011248@jimscaling.online (Free Resources) for 1800s 
+[lead] 2026-08-17T01:12:52.895Z Resend contact updated for strategy+browser-20260817011248@jimscaling.online (638d59d4-7623-46fb-ac86-352018aa680e) 
+[lead] 2026-08-17T01:12:53.538Z Delivery email sent to strategy+browser-20260817011248@jimscaling.online (bfa84ca8-5a1e-44dd-be87-dccca583d7a8) 
+[lead] 2026-08-17T01:12:53.961Z Submission complete: lead 9 for strategy+browser-20260817011248@jimscaling.online 
+[lead] 2026-08-17T01:15:53.936Z Submission received from ::ffff:127.0.0.1 
+[lead] 2026-08-17T01:15:54.553Z Baserow lead created: id=10, email=visualfram@gmail.com, phone=***71 
+[lead] 2026-08-17T01:15:54.554Z Duplicate guard armed for visualfram@gmail.com (Free Resources) for 1800s 
+[lead] 2026-08-17T01:15:55.225Z Resend contact updated for visualfram@gmail.com (638d59d4-7623-46fb-ac86-352018aa680e) 
+[lead] 2026-08-17T01:15:55.602Z Delivery email sent to visualfram@gmail.com (9fce9bc1-e365-451c-bf31-566e73774a8a) 
+[lead] 2026-08-17T01:15:55.828Z Submission complete: lead 10 for visualfram@gmail.com 

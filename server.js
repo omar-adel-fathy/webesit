@@ -3,6 +3,7 @@ import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import jimmyHandler from "./api/jimmy.js";
+import leadHandler from "./api/lead.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,6 +17,11 @@ app.options("/api/jimmy", jimmyHandler);
 app.get("/api/jimmy", jimmyHandler);
 app.head("/api/jimmy", jimmyHandler);
 app.post("/api/jimmy", jimmyHandler);
+
+app.options("/api/lead", leadHandler);
+app.get("/api/lead", leadHandler);
+app.head("/api/lead", leadHandler);
+app.post("/api/lead", leadHandler);
 
 app.use(
   express.static(path.join(__dirname, "dist"), {
