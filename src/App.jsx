@@ -21,6 +21,7 @@ import FreeResourcesPage from "./components/FreeResourcesPage";
 import SiteFooter from "./components/SiteFooter";
 import SiteHeader from "./components/SiteHeader";
 import DiscoveryPage from "./components/DiscoveryPage";
+import { trackTallySubmissions } from "./lib/vidworth";
 
 const tallyFormId = import.meta.env.VITE_TALLY_FORM_ID || "WOkqMa";
 
@@ -551,6 +552,10 @@ function CleanBookingSection() {
       document.body.appendChild(script);
     }
   }, []);
+
+  // The application form is a cross-origin iframe, so VidWorth cannot pick the
+  // submission up on its own.
+  useEffect(() => trackTallySubmissions(), []);
 
   return (
     <div className="w-full">
