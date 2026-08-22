@@ -3,6 +3,7 @@ import { CheckCircle2 } from "lucide-react";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
 import { toPath, withCurrentQuery } from "../lib/navigation";
+import { rememberVisitor } from "../lib/identity";
 
 const DEFAULT_COUNTRY_OPTIONS = ["United States", "Canada", "United Kingdom", "Australia", "Egypt"];
 
@@ -234,12 +235,30 @@ export default function FreeResourcesPage() {
           country: values.country,
           fields: { Role: values.role, Resource: "Free Resources" },
         });
+        // The lead is the moment this browser stops being anonymous. Bind it to
+        // our own row id now, and main.jsx re-binds it on every later load.
+        rememberVisitor({
+          leadId: data.leadId,
+          email,
+          name: fullName,
+          country: values.country,
+          role: values.role,
+        });
         setSubmittedEmail(email);
         setStatus("success");
         return;
       }
 
       const code = data.error || "server";
+      // A duplicate is not a new lead, but it is still this person telling us
+      // who they are — bind the browser rather than discarding the identity.
+      rememberVisitor({
+        leadId: data.leadId,
+        email,
+        name: fullName,
+        country: values.country,
+        role: values.role,
+      });
       window.VidWorthTrack?.("resource_request_failed", { meta: { reason: code } });
       if (code === "validation" && data.details) {
         setFieldErrors(data.details);

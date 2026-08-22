@@ -117,7 +117,7 @@ async function handlePost(req, res) {
   if (guard) {
     if (guard.state === "Sent") {
       log.info(`Duplicate submission blocked for ${lead.email}`);
-      return json(res, 409, { success: false, error: "duplicate", message: "You already requested this resource. Check your inbox — it's on its way." });
+      return json(res, 409, { success: false, error: "duplicate", leadId: guard.leadId, message: "You already requested this resource. Check your inbox — it's on its way." });
     }
     if (guard.leadId !== null && config.resendApiKey) {
       log.info(`Re-delivering resource to ${lead.email} (previous delivery ${guard.state})`);
@@ -158,13 +158,13 @@ async function handlePost(req, res) {
         });
         await patchDeliveryStatus(config, meta, guard.leadId, DELIVERY_STATUS.SENT);
         updateState(lead.email, config.resourceTitle, "Sent");
-        return json(res, 200, { success: true, message: "Resource re-sent. Check your inbox." });
+        return json(res, 200, { success: true, leadId: guard.leadId, message: "Resource re-sent. Check your inbox." });
       } catch (error) {
         log.error(`Re-delivery failed for ${lead.email}: ${resendDiagnostic(config, error)}`);
         return json(res, 500, { success: false, error: "delivery_failed", message: "We're re-sending your resource. Give it a few minutes and try again." });
       }
     }
-    return json(res, 409, { success: false, error: "duplicate", message: "You already requested this resource. Check your inbox — it's on its way." });
+    return json(res, 409, { success: false, error: "duplicate", leadId: guard.leadId, message: "You already requested this resource. Check your inbox — it's on its way." });
   }
 
   const urls = normalizeResourceUrls({
@@ -257,7 +257,10 @@ async function handlePost(req, res) {
     await patchDeliveryStatus(config, meta, leadId, DELIVERY_STATUS.SENT);
     updateState(lead.email, config.resourceTitle, "Sent");
     log.info(`Submission complete: lead ${leadId} for ${lead.email}`);
-    return json(res, 201, { success: true, message: "Check your inbox — your resource is on the way." });
+    // leadId is this site's own stable id for the person. The browser hands it
+    // straight to VidWorthIdentify, which is what joins the video that produced
+    // this visitor to every later thing they do, on this device or another one.
+    return json(res, 201, { success: true, leadId, message: "Check your inbox — your resource is on the way." });
   } catch (error) {
     log.error(`Email delivery failed for lead ${leadId} (${lead.email}): ${resendDiagnostic(config, error)}`);
     await patchDeliveryStatus(config, meta, leadId, DELIVERY_STATUS.FAILED);
