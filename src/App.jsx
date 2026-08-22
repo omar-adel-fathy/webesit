@@ -21,7 +21,7 @@ import FreeResourcesPage from "./components/FreeResourcesPage";
 import SiteFooter from "./components/SiteFooter";
 import SiteHeader from "./components/SiteHeader";
 import DiscoveryPage from "./components/DiscoveryPage";
-import { trackTallySubmissions } from "./lib/vidworth";
+import { toPath, withCurrentQuery } from "./lib/navigation";
 
 const tallyFormId = import.meta.env.VITE_TALLY_FORM_ID || "WOkqMa";
 
@@ -283,7 +283,12 @@ function InteractiveActionablePlan() {
           {steps.map((s, idx) => (
             <button
               key={s.id}
-              onClick={() => setActiveStep(idx)}
+              onClick={() => {
+                window.VidWorthTrack?.("strategy_step_viewed", {
+                  meta: { step: s.title, index: idx + 1, total: steps.length },
+                });
+                setActiveStep(idx);
+              }}
               className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between ${
                 activeStep === idx
                   ? "bg-white border-[#2454E8] shadow-lg ring-1 ring-[#2454E8]/20"
@@ -381,6 +386,42 @@ function InteractiveActionablePlan() {
 }
 
 // ---- Workspace Dashboard Simulator ----
+// Reports a plan view once a package card has actually been dwelt on, rather
+// than when it mounted — this section renders on every homepage visit, so a
+// mount would count every visitor as having considered the pricing.
+function PlanViewReporter({ plan, children }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || typeof IntersectionObserver === "undefined") return;
+
+    let timer = null;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          timer = window.setTimeout(() => {
+            window.VidWorthPlanView?.({ meta: { plan } });
+            observer.disconnect();
+          }, 2000);
+        } else if (timer) {
+          window.clearTimeout(timer);
+          timer = null;
+        }
+      },
+      { threshold: 0.6 },
+    );
+
+    observer.observe(node);
+    return () => {
+      if (timer) window.clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [plan]);
+
+  return <div ref={ref}>{children}</div>;
+}
+
 function WorkspaceDashboardSimulator() {
   const [activeTab, setActiveTab] = useState("sprint");
 
@@ -399,7 +440,10 @@ function WorkspaceDashboardSimulator() {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                window.VidWorthTrack?.("workspace_tab_viewed", { meta: { tab: tab.id } });
+                setActiveTab(tab.id);
+              }}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold border transition-all duration-200 ${
                 activeTab === tab.id
                   ? "bg-white border-[#2454E8] text-[#2454E8] shadow-md"
@@ -530,6 +574,8 @@ function WorkspaceDashboardSimulator() {
 
 // ---- SECTION 2: Clean, Distraction-Free Form Container ----
 function CleanBookingSection() {
+  const sectionRef = useRef(null);
+
   useEffect(() => {
     const loadTally = () => {
       if (typeof window !== "undefined" && window.Tally) {
@@ -553,12 +599,38 @@ function CleanBookingSection() {
     }
   }, []);
 
-  // The application form is a cross-origin iframe, so VidWorth cannot pick the
-  // submission up on its own.
-  useEffect(() => trackTallySubmissions(), []);
+  // The submission itself is reported by the Tally plugin server-to-server, so
+  // nothing here forwards it a second time. What Tally cannot tell us is how
+  // many people reached the form and never filled it in, so report the view.
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || typeof IntersectionObserver === "undefined") return;
+
+    let timer = null;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          timer = window.setTimeout(() => {
+            window.VidWorthTrack?.("application_form_viewed");
+            observer.disconnect();
+          }, 1500);
+        } else if (timer) {
+          window.clearTimeout(timer);
+          timer = null;
+        }
+      },
+      { threshold: 0.4 },
+    );
+
+    observer.observe(section);
+    return () => {
+      if (timer) window.clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, []);
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={sectionRef}>
       <div className="rounded-[2.25rem] border border-[#CBBF9A]/70 bg-[#F8F1E6]/80 backdrop-blur-md p-3 md:p-6 shadow-2xl transition-all duration-300">
         <div className="tally-wrapper w-full rounded-2xl">
           <iframe
@@ -664,6 +736,17 @@ function JimmyChat() {
     setInput("");
     setMessages(p => [...p, userMsg]);
 
+    // How deep a visitor goes with Jimmy is the engagement signal. The question
+    // itself is only reported when it is one of the canned prompts — a typed
+    // message is the visitor's own words and stays out of the payload.
+    window.VidWorthTrack?.("chat_message_sent", {
+      meta: {
+        index: next.filter(m => m.role === "user").length,
+        suggested: Boolean(suggested),
+        question: suggested || undefined,
+      },
+    });
+
     try {
       let memory = {};
       try { const r = localStorage.getItem("creative-scaling-profile"); if (r) memory = JSON.parse(r); } catch (_) {}
@@ -698,7 +781,10 @@ function JimmyChat() {
         type="button"
         whileHover={{ scale: 1.03, y: -2 }}
         whileTap={{ scale: 0.97 }}
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          window.VidWorthTrack?.("chat_opened");
+          setOpen(true);
+        }}
         className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-full bg-[#111113] text-white px-5 py-3 text-xs font-bold shadow-[0_12px_30px_rgba(17,17,19,0.35)] border border-white/15 backdrop-blur-md transition-all hover:bg-[#1b1b1e] hover:shadow-[0_16px_36px_rgba(36,84,232,0.3)] group"
       >
         <span className="relative flex h-2 w-2">
@@ -751,7 +837,9 @@ function JimmyChat() {
               </div>
 
               {/* Messages */}
-              <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-hide bg-white">
+              {/* Chat bodies are masked in session replay: the layout, scrolling
+                  and turn-taking still replay, the words do not. */}
+              <div data-vw-mask ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-hide bg-white">
                 {messages.map((m, i) => (
                   <div
                     key={i}
@@ -877,7 +965,8 @@ export default function CreativeScalingLandingPage() {
   const scrollTo = (href) => {
     if (href && href.startsWith("/")) {
       const [path, hash] = href.split("#");
-      window.history.pushState({}, "", `${path || "/"}${hash ? `#${hash}` : ""}`);
+      // withCurrentQuery keeps the inbound ?tid= on the URL across the hop.
+      window.history.pushState({}, "", withCurrentQuery(`${path || "/"}${hash ? `#${hash}` : ""}`));
       setCurrentPath(path || "/");
       window.scrollTo({ top: 0, behavior: "smooth" });
       if (hash) window.setTimeout(() => document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" }), 80);
@@ -964,14 +1053,21 @@ export default function CreativeScalingLandingPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-1">
             <a
               href="#apply"
-              onClick={e => { e.preventDefault(); scrollTo("#apply"); }}
+              onClick={e => {
+                e.preventDefault();
+                window.VidWorthTrack?.("apply_cta_clicked", { meta: { location: "hero" } });
+                scrollTo("#apply");
+              }}
               className="cool-button text-sm w-full sm:w-auto px-8 py-4"
             >
               Apply for a Strategy Review
               <ArrowUpRight className="h-4 w-4" />
             </a>
             <button
-              onClick={() => scrollTo("#interactive-plan")}
+              onClick={() => {
+                window.VidWorthTrack?.("strategy_plan_opened", { meta: { location: "hero" } });
+                scrollTo("#interactive-plan");
+              }}
               className="glass-button text-sm w-full sm:w-auto px-8 py-4"
             >
               See Actionable Strategy Plan
@@ -1272,6 +1368,7 @@ export default function CreativeScalingLandingPage() {
               variants={fadeUp}
               transition={{ delay: i * 0.08 }}
             >
+              <PlanViewReporter plan={pkg.name}>
               <div className={`card-surface p-6 md:p-8 flex flex-col justify-between min-h-[500px] relative h-full ${
                 pkg.recommended ? "border-[#2454E8] ring-2 ring-[#2454E8]/30 shadow-2xl" : ""
               }`}>
@@ -1298,13 +1395,19 @@ export default function CreativeScalingLandingPage() {
                 <div className="mt-8">
                   <a
                     href="#apply"
-                    onClick={e => { e.preventDefault(); scrollTo("#apply"); }}
+                    onClick={e => {
+                      e.preventDefault();
+                      window.VidWorthPlanView?.({ meta: { plan: pkg.name } });
+                      window.VidWorthTrack?.("apply_cta_clicked", { meta: { location: "pricing_card", plan: pkg.name } });
+                      scrollTo("#apply");
+                    }}
                     className="cool-button w-full text-xs text-center py-3.5"
                   >
                     Apply for Strategy Review
                   </a>
                 </div>
               </div>
+              </PlanViewReporter>
             </motion.div>
           ))}
         </div>
@@ -1397,7 +1500,11 @@ export default function CreativeScalingLandingPage() {
           </p>
           <a
             href="#apply"
-            onClick={e => { e.preventDefault(); scrollTo("#apply"); }}
+            onClick={e => {
+              e.preventDefault();
+              window.VidWorthTrack?.("apply_cta_clicked", { meta: { location: "final_cta" } });
+              scrollTo("#apply");
+            }}
             className="cool-button inline-flex text-sm px-8 py-4"
           >
             Apply for a Strategy Review

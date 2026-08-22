@@ -38,6 +38,13 @@ export default function SiteHeader({
     onNavigate?.(href);
   };
 
+  // The header CTA is on every page, so it is the one apply click that shows
+  // where in the site a visitor decided to convert.
+  const goCta = (placement) => {
+    window.VidWorthTrack?.("apply_cta_clicked", { meta: { location: placement } });
+    go(ctaHref);
+  };
+
   return (
     <header className={`fixed left-0 top-0 z-50 w-full px-4 md:px-6 transition-all duration-500 ${isScrolled ? "py-2" : "py-5"}`}>
       <div
@@ -89,7 +96,7 @@ export default function SiteHeader({
         <div className="flex items-center gap-2.5">
           <a
             href={onNavigate ? "#" : ctaHref}
-            onClick={e => { e.preventDefault(); go(ctaHref); }}
+            onClick={e => { e.preventDefault(); goCta("header"); }}
             className="hidden md:inline-flex cool-button text-xs py-2 h-9 px-5"
           >
             {ctaLabel}
@@ -126,7 +133,7 @@ export default function SiteHeader({
               ))}
               <a
                 href={onNavigate ? "#" : ctaHref}
-                onClick={e => { e.preventDefault(); go(ctaHref); }}
+                onClick={e => { e.preventDefault(); goCta("mobile_menu"); }}
                 className="mt-2 cool-button w-full text-center text-xs"
               >
                 {ctaLabel}

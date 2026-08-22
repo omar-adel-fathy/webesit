@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { ArrowUpRight, CheckCircle2, ExternalLink, PlaySquare } from "lucide-react";
 import SiteHeader, { navLinks } from "./SiteHeader";
 import SiteFooter from "./SiteFooter";
+import { toPath, withCurrentQuery } from "../lib/navigation";
 
 const SITE_URL = "https://jimscaling.online";
 const YOUTUBE_URL = "https://www.youtube.com/@jimscaling";
@@ -95,7 +96,9 @@ function SeoHead({ type }) {
 
 function PageLink({ href, children }) {
   return (
-    <a href={href} className="discovery-link">
+    // withCurrentQuery keeps the inbound ?tid= on the link, so a visitor who
+    // arrives from a video and then browses the discovery pages stays attributed.
+    <a href={withCurrentQuery(href)} className="discovery-link">
       {children} <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
     </a>
   );
@@ -280,21 +283,18 @@ function YouTubeContent() {
 export default function DiscoveryPage({ type }) {
   const copy = pageCopy[type];
   const content = type === "about" ? <AboutContent /> : type === "jimmy" ? <JimmyContent /> : type === "news" ? <NewsContent /> : <YouTubeContent />;
-  const goHome = () => window.history.pushState({}, "", "/");
+  const goHome = () => window.history.pushState({}, "", withCurrentQuery("/"));
   return (
     <div className="discovery-page">
       <SeoHead type={type} />
-      <SiteHeader navItems={navLinks} onNavigate={(href) => {
-        if (href.startsWith("/")) window.location.assign(href);
-        else window.location.assign(`/${href}`);
-      }} ctaHref="/#apply" />
+      <SiteHeader navItems={navLinks} onNavigate={(href) => window.location.assign(toPath(href))} ctaHref="/#apply" />
       <main>
         <section className="discovery-hero">
           <div className="discovery-kicker">{copy.eyebrow}</div>
           <h1>{copy.heading}</h1>
           <p>{copy.intro}</p>
           <div className="discovery-actions">
-            <a className="discovery-link primary-link" href="/#apply">Apply for a Strategy Review <ArrowUpRight aria-hidden="true" className="h-4 w-4" /></a>
+            <a className="discovery-link primary-link" href={withCurrentQuery("/#apply")}>Apply for a Strategy Review <ArrowUpRight aria-hidden="true" className="h-4 w-4" /></a>
             <a className="discovery-link" href={YOUTUBE_URL} target="_blank" rel="noreferrer">Watch Jim Scaling <ExternalLink aria-hidden="true" className="h-4 w-4" /></a>
           </div>
         </section>
@@ -312,7 +312,7 @@ export default function DiscoveryPage({ type }) {
           </div>
         </section>
       </main>
-      <SiteFooter onNavigate={(href) => href.startsWith("/") ? window.location.assign(href) : window.location.assign(`/${href}`)} />
+      <SiteFooter onNavigate={(href) => window.location.assign(toPath(href))} />
     </div>
   );
 }

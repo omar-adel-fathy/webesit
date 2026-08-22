@@ -147,6 +147,8 @@ export function describeAttribution(attribution) {
   if (attribution.utm_medium) parts.push(`utm_medium=${attribution.utm_medium}`);
   if (attribution.utm_campaign) parts.push(`utm_campaign=${attribution.utm_campaign}`);
   if (attribution.utm_content) parts.push(`utm_content=${attribution.utm_content}`);
+  // The VidWorth click id, so the stored lead names the video it came from.
+  if (attribution.tid) parts.push(`tid=${attribution.tid}`);
   return parts.join(", ");
 }
 

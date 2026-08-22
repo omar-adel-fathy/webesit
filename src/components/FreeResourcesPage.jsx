@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import SiteFooter from "./SiteFooter";
 import SiteHeader from "./SiteHeader";
+import { toPath, withCurrentQuery } from "../lib/navigation";
 
 const DEFAULT_COUNTRY_OPTIONS = ["United States", "Canada", "United Kingdom", "Australia", "Egypt"];
 
@@ -92,7 +93,8 @@ function SuccessCard({ email }) {
       </div>
       <h3 className="font-heading text-2xl font-extrabold text-[#111113]">You’re on the list.</h3>
       <p className="mt-3 text-sm leading-6 text-[#111113]/70">
-        Your free resource is on the way to <span className="font-bold text-[#111113]">{email}</span>.
+        Your free resource is on the way to{" "}
+        <span data-vw-mask className="font-bold text-[#111113]">{email}</span>.
       </p>
       <p className="mt-4 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#667350]">Check your inbox</p>
     </div>
@@ -107,6 +109,7 @@ export default function FreeResourcesPage() {
   const [submittedEmail, setSubmittedEmail] = useState("");
   const [attribution, setAttribution] = useState({});
   const [countryOptions, setCountryOptions] = useState(DEFAULT_COUNTRY_OPTIONS);
+  const startedRef = useRef(false);
 
   useEffect(() => {
     const captured = captureAttribution();
@@ -135,12 +138,14 @@ export default function FreeResourcesPage() {
     };
   }, []);
 
+  // toPath / withCurrentQuery carry the inbound ?tid= across the hop, so a
+  // visitor who came from a video and then leaves this page stays attributed.
   const navigate = (href) => {
-    window.location.assign("/" + href);
+    window.location.assign(toPath(href));
   };
 
   const goHome = () => {
-    window.location.assign("/");
+    window.location.assign(withCurrentQuery("/"));
   };
 
   const inputBase = (invalid) =>
@@ -161,6 +166,12 @@ export default function FreeResourcesPage() {
   };
 
   const setValue = (key, value) => {
+    // The first field a visitor touches is the real start of the form; a mount
+    // is just a page view and is already counted as one.
+    if (!startedRef.current) {
+      startedRef.current = true;
+      window.VidWorthTrack?.("resource_form_started");
+    }
     setValues((current) => ({ ...current, [key]: value }));
     setFieldErrors((current) => {
       if (!current[key]) return current;
@@ -176,6 +187,7 @@ export default function FreeResourcesPage() {
 
     const errors = validateClient();
     if (errors) {
+      window.VidWorthTrack?.("resource_request_failed", { meta: { reason: "validation_client" } });
       setFieldErrors(errors);
       setFormError("Please fix the highlighted fields.");
       setStatus("error");
@@ -186,15 +198,21 @@ export default function FreeResourcesPage() {
     setFieldErrors({});
     setStatus("submitting");
 
+    const email = values.email.trim().toLowerCase();
+    const fullName = values.fullName.trim();
+    const phone = values.phone.trim();
+
     const payload = {
-      fullName: values.fullName.trim(),
-      email: values.email.trim().toLowerCase(),
-      phone: values.phone.trim() || undefined,
+      fullName,
+      email,
+      phone: phone || undefined,
       country: values.country,
       role: values.role,
       consent: true,
       company: "",
-      attribution,
+      // The click id the tracker is holding rides along to our own backend so
+      // the Baserow row and the VidWorth lead describe the same journey.
+      attribution: { ...attribution, tid: window.VidWorthClickId?.() || undefined },
       resourceTitle: "Free Resources",
     };
 
@@ -207,12 +225,22 @@ export default function FreeResourcesPage() {
 
       const data = await response.json();
       if (response.ok && data.success) {
-        setSubmittedEmail(values.email.trim().toLowerCase());
+        // This form lives in component state and posts JSON, so the tracker
+        // cannot read it. Report it only once the API has confirmed the lead.
+        window.VidWorthLead?.({
+          email,
+          name: fullName,
+          phone: phone || undefined,
+          country: values.country,
+          fields: { Role: values.role, Resource: "Free Resources" },
+        });
+        setSubmittedEmail(email);
         setStatus("success");
         return;
       }
 
       const code = data.error || "server";
+      window.VidWorthTrack?.("resource_request_failed", { meta: { reason: code } });
       if (code === "validation" && data.details) {
         setFieldErrors(data.details);
         setFormError("Please fix the highlighted fields.");
@@ -221,6 +249,7 @@ export default function FreeResourcesPage() {
       }
       setStatus("error");
     } catch {
+      window.VidWorthTrack?.("resource_request_failed", { meta: { reason: "network" } });
       setFormError(errorMessages.network);
       setStatus("error");
     }
