@@ -24,7 +24,16 @@
 
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+/* Deliberately NOT `html { scroll-behavior: smooth }`.
+   Session replay drives the recorded page by calling scrollTo() roughly every
+   100ms. A global smooth rule turns each of those into an animation that the
+   next one interrupts, so the replayed viewport crawls a few hundred pixels and
+   the recording looks frozen on the hero no matter how far the visitor actually
+   scrolled. Measured: replaying a real scroll track to y=9000 reached y=1054
+   with this rule and y=9000 without it.
+   Nothing is lost — every intentional smooth scroll on this site asks for it
+   explicitly in JS (scrollIntoView({ behavior: "smooth" }), scrollTo({ behavior:
+   "smooth" })), and the header nav uses buttons rather than native anchor jumps. */
 
 body {
   margin: 0;
